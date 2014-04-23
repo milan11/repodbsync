@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include "LinesReader.h"
 #include "SafeWriter.h"
+#include "exceptions.h"
 #include "util.h"
 
 const std::string DbOperations::versionTableName = "VersionInfo";
@@ -180,19 +181,13 @@ uint32_t DbOperations::getVersion() {
 			if ((firstPar != std::string::npos) && (lastPar != std::string::npos) && (firstPar < lastPar)) {
 				std::string numStr = line->substr(firstPar + 1, lastPar - firstPar - 1);
 				try {
-					size_t pos;
-					uint32_t result = std::stoul(numStr, &pos);
-					if (pos != numStr.size()) {
-						throw 0;
-					}
-					return result;
-				} catch(...) {
-				}
+					return ::stringToNumber(numStr);
+				} HANDLE_IGNORE;
 			}
 		}
 	}
 
-	throw std::string("Unable to get version info.");
+	THROW("Unable to get version info.");
 }
 
 void DbOperations::setVersion(const uint32_t version) {
@@ -224,7 +219,7 @@ std::set<std::string> DbOperations::getTables_internal() {
 	std::set<std::string> result;
 	LinesReader reader(tables.path());
 	boost::optional<std::string> line;
-	while (line = reader.readLine()) {
+	while ((line = reader.readLine())) {
 		if (line->find("CREATE TABLE `") == 0) {
 			std::string::size_type firstApos = (line->find('`'));
 			std::string::size_type lastApos = (line->rfind('`'));

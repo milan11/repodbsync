@@ -19,6 +19,7 @@
 #include "ScriptProperties.h"
 #include "Temp.h"
 #include "TextDiff.h"
+#include "exceptions.h"
 #include "util.h"
 
 std::vector<std::string> sortByDependencies(const std::set<std::string> &tables, DbOperations &db) {
@@ -105,6 +106,7 @@ boost::optional<std::string> getIgnoredDataWhere(const std::string &tableName, c
 }
 
 void main_inner() {
+
 	boost::filesystem::path rootDir = boost::filesystem::current_path();
 
 	const std::string configFileName = "dbup_config_local.txt";
@@ -120,16 +122,16 @@ void main_inner() {
 
 	if (! c.fileExists()) {
 		if (! boost::filesystem::is_empty(rootDir)) {
-			throw std::string("The current directory " + rootDir.string() + " is not a repository database directory. If you want to initialize a new repository database directory, create an empty directory (e.g. in your git repository working copy) and run this again in that new empty directory.");
+			THROW(boost::format("The current directory %1% is not a repository database directory. If you want to initialize a new repository database directory, create an empty directory (e.g. in your git repository working copy) and run this again in that new empty directory.") % rootDir.string());
 		}
 
 		c.save();
-		throw std::string("Config not found. Fill the configuration in the file " + configFileName + ".");
+		THROW(boost::format("Config not found. Fill the configuration in the file %1%") % configFileName);
 	}
 
 	c.load();
 	if (! c.isFilled()) {
-		throw std::string("Config not filled. Fill the configuration in the file " + configFileName + ".");
+		THROW(boost::format("Config not filled. Fill the configuration in the file %1%") % configFileName);
 	}
 
 	bool ignoreFilesCreated = boost::filesystem::exists(rootDir / scriptsDirName);
@@ -196,19 +198,13 @@ void main_inner() {
 		for (const std::string &tableName : dbTemp.getTables()) {
 			dbTemp.deleteTable(tableName);
 		}
-	} catch (const std::string &s) {
-		std::cerr << "Unable to clear the temporary database." << std::endl;
-		throw;
-	}
+	} HANDLE_RETHROW("Unable to clear the temporary database.");
 
 	try {
 		for (const boost::filesystem::path &script : scripts.getFiles()) {
 			dbTemp.import(script);
 		}
-	} catch (const std::string &s) {
-		std::cerr << s << std::endl;
-		throw std::string("Unable to import data to the temporary database using scripts in the repository.");
-	}
+	} HANDLE_RETHROW("Unable to import data to the temporary database using scripts in the repository.");
 
 	if (! dbLocal.isVersioned()) {
 		Question question;
@@ -218,7 +214,7 @@ void main_inner() {
 		if (question.show() == option_yes) {
 			dbLocal.makeVersioned();
 		} else {
-			throw std::string("Aborted - not creating version information.");
+			THROW("Aborted - not creating version information.");
 		}
 	}
 
@@ -230,7 +226,7 @@ void main_inner() {
 		if (question.show() == option_yes) {
 			dbLocal.setVersion(repositoryVersion);
 		} else {
-			throw std::string("Aborted - the local VALUEdatabase has higher version than the repository.");
+			THROW("Aborted - the local VALUEdatabase has higher version than the repository.");
 		}
 	}
 
@@ -257,7 +253,7 @@ void main_inner() {
 				}
 
 				if (selectedOption == option_abort) {
-					throw std::string("Aborted.");
+					THROW("Aborted.");
 				}
 
 				if ((selectedOption == option_automatic) || (selectedOption == option_automatic_all)) {
@@ -404,9 +400,7 @@ void main_inner() {
 int main() {
 	try {
 		main_inner();
-	} catch (const std::string &error) {
-		std::cout << error << std::endl;
-	}
+	} HANDLE_PRINT;
 
 	return 0;
 }

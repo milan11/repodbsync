@@ -1,4 +1,5 @@
 #include "LinesReader.h"
+#include "exceptions.h"
 
 LinesReader::LinesReader(const boost::filesystem::path &file)
 	:
@@ -6,7 +7,7 @@ LinesReader::LinesReader(const boost::filesystem::path &file)
 	  fileName(file.string())
 {
 	if (! is.good()) {
-		throw "File opening failed: " + fileName;
+		THROW(boost::format("File opening failed: %1%") % fileName);
 	}
 }
 
@@ -18,7 +19,7 @@ boost::optional<std::string> LinesReader::readLine() {
 	std::string line;
 	std::getline(is, line);
 	if ((! is.good()) && (! is.eof())) {
-		throw "File reading failed: " + fileName;
+		THROW(boost::format("File reading failed: %1%") % fileName);
 	}
 
 	if (is.eof() && line.empty()) {

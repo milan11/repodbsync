@@ -1,10 +1,11 @@
 #include "ScriptProperties.h"
 
+#include "exceptions.h"
 #include "util.h"
 
 ScriptProperties::ScriptProperties(const boost::filesystem::path &file) {
 	if (file.extension() != ".sql") {
-		throw std::string("Invalid file extension (should be .sql):" + file.string());
+		THROW(boost::format("Invalid file extension (should be .sql): %1%") % file.string());
 	}
 
 	const std::string stem = file.stem().string();
@@ -12,17 +13,11 @@ ScriptProperties::ScriptProperties(const boost::filesystem::path &file) {
 	const std::string targetDbVersionNum = stem.substr(0, versionLength);
 
 	try {
-		size_t pos;
-		targetDbVersion = std::stoul(targetDbVersionNum, &pos);
-		if (pos != targetDbVersionNum.size()) {
-			throw 0;
-		}
-	} catch(...) {
-		throw std::string("Script file name should begin with a number (" + std::to_string(versionLength) + " digits): " + file.string());
-	}
+		targetDbVersion = ::stringToNumber(targetDbVersionNum);
+	} HANDLE_RETHROW(boost::format("Script file name should begin with a number (%1% digits): %2%") % size_t(versionLength) % file.string());
 
 	if (stem.size() < (versionLength + 1) || (stem[versionLength] != '_')) {
-		throw std::string("Number in a script file name has to begin with an underscore (_): " + file.string());
+		THROW(boost::format("Number in a script file name has to begin with an underscore (_): %1%") % file.string());
 	}
 
 	name = stem.substr(versionLength + 1);

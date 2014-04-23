@@ -1,6 +1,7 @@
 #include "TempFile.h"
 
 #include <boost/filesystem.hpp>
+#include "exceptions.h"
 
 TempFile::TempFile(boost::filesystem::path file)
 	:
@@ -24,14 +25,12 @@ const boost::filesystem::path &TempFile::path() const {
 
 void TempFile::moveTo(const boost::filesystem::path &newPath) {
 	if (moved) {
-		throw "Temp file already moved: " + file.string();
+		THROW(boost::format("Temp file already moved: %1%") % file.string());
 	}
 
 	try {
 		boost::filesystem::rename(file, newPath);
-	} catch (boost::filesystem::filesystem_error &e) {
-		throw "Unable to move temporary file: " + file.string() + " (cause: " + e.what() + ")";
-	}
+	} HANDLE_RETHROW(boost::format("Unable to move temporary file: %1%") % file.string());
 
 	moved = true;
 }

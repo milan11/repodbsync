@@ -2,6 +2,7 @@
 
 #include <boost/filesystem.hpp>
 #include "ScriptProperties.h"
+#include "exceptions.h"
 #include "util.h"
 
 Scripts::Scripts(boost::filesystem::path dir)
@@ -9,7 +10,7 @@ Scripts::Scripts(boost::filesystem::path dir)
 	  dir(std::move(dir))
 {
 	if (boost::filesystem::exists(dir) && (! boost::filesystem::is_directory(dir))) {
-		throw std::string("Scripts file exists but is not a directory.");
+		THROW("Scripts file exists but is not a directory.");
 	}
 
 	createDirIfNotExists(dir);
@@ -34,7 +35,7 @@ Scripts::Scripts(boost::filesystem::path dir)
 		ScriptProperties scriptProperties(file);
 
 		if (scriptProperties.getTargetDbVersion() != version) {
-			throw std::string("Missing script file with target database version ") + std::to_string(version) + " (" + std::to_string(scriptProperties.getTargetDbVersion()) + " found instead): " + file.string();
+			THROW(boost::format("Missing script file with target database version %1% (%2% found instead): %3%") % version % scriptProperties.getTargetDbVersion() % file.string());
 		}
 	}
 }

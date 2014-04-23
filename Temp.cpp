@@ -1,6 +1,7 @@
 #include "Temp.h"
 
 #include <boost/filesystem.hpp>
+#include "exceptions.h"
 #include "util.h"
 
 Temp::Temp(boost::filesystem::path dir)
@@ -8,7 +9,7 @@ Temp::Temp(boost::filesystem::path dir)
 	  dir(std::move(dir))
 {
 	if (boost::filesystem::exists(dir) && (! boost::filesystem::is_directory(dir))) {
-		throw std::string("Temp file exists but is not a directory.");
+		THROW("Temp file exists but is not a directory.");
 	}
 }
 

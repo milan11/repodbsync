@@ -7,6 +7,7 @@
 class SafeWriter {
 public:
 	explicit SafeWriter(const boost::filesystem::path &file);
+	~SafeWriter();
 
 	void writeLine(const std::string &str);
 
