@@ -1,4 +1,4 @@
-DBUP - database sharing helper
+RepoDbSync - synchronization of development database with SQL scripts in a shared repository
 
 VERSION:
 0.1
@@ -20,7 +20,7 @@ BASIC INFORMATION:
 SOURCE CODE INFORMATION:
 - implementation language: C++11
 - source code distribution: as CMake project
-- latest source code available at: https://github.com/milan11/dbup
+- latest source code available at: https://github.com/milan11/repodbsync
 
 DEPENDENCIES:
 - mysql, mysqldump (must be in path)

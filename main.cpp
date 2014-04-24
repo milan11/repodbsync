@@ -14,7 +14,7 @@
 #include "exceptions.h"
 #include "util.h"
 
-const std::string configFileName = "dbup_config_local.txt";
+const std::string configFileName = "repodbsync_config_local.txt";
 const std::string scriptsDirName = "scripts";
 
 const std::string ignoredTablesFileName = "ignore_tables.txt";

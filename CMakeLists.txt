@@ -66,17 +66,17 @@ MACRO(ADD_PRECOMPILED_HEADER _targetName _input)
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 ENDMACRO()
 
-project(dbup)
+project(repodbsync)
 cmake_minimum_required(VERSION 2.8)
 SET(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 SET(CMAKE_CXX_FLAGS "-std=c++0x")
 aux_source_directory(. SRC_LIST)
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 
-add_precompiled_header(dbup _precomp_header.h [FORCEINCLUDE])
+add_precompiled_header(repodbsync _precomp_header.h [FORCEINCLUDE])
 
 find_package(Boost COMPONENTS system filesystem REQUIRED)
-target_link_libraries(dbup
+target_link_libraries(repodbsync
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
 )
