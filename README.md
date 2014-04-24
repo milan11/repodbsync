@@ -76,18 +76,18 @@ Please note that these descriptions refer to the state when everyone already has
 * the tool will ask you if it can apply each script automatically; but maybe you will have to make some changes in your local development database manually and let the tool increment the database version only
 * after all scripts are applied, the tool helps you to add scripts reflecting your own database changes to the repository; see: E. Common instructions - adding database scripts to the repository
 
-#### 5. Commit
+##### 5. Commit
 * commit new .sql scripts to the shared repository
 
-##### C. Common instructions - settings file
+#### C. Common instructions - settings file
 * you have to set up two databases:
 	* the "local" database is your development database
 	* the "temp" database is a (empty) temporary database - it will be used by this tool for simulating a database reflecting the repository state and will be cleaned before each run (so be careful to set it to an empty database; not to some database you are using for something)
 
-##### D. Common instructions - database versioning
+#### D. Common instructions - database versioning
 * if your local development database does not contain version information, the tool will ask you if it can add the version information - that is adding one table to your database where the version info will be stored
 
-##### E. Common instructions - adding database scripts to the repository
+#### E. Common instructions - adding database scripts to the repository
 * the tool will tell you what add to the repository so that the repository will exactly reflect your local development database
 * you will have to repeat this step until the tool prints nothing (the tool prints nothing only if everything is in a correct, synchronized state - if the repository exactly reflects your local development database)
 * note the contents of the "outs" directory after each run, there are some created scripts that you can use when creating the scripts in the repository
