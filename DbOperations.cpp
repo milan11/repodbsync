@@ -62,7 +62,7 @@ void DbOperations::exportData(const std::string &tableName, const std::string &i
 	command << " > " << file.string();
 
 	executeCommand(command.str());
-
+	// mysqldump --host localhost -uroot -p.. --compact  --skip-extended-insert --order-by-primary --no-create-info --where "te=..." m_local abc
 	// mysqldump -h... -u... -p... --no-data --no-create-info --routines > MySQLStoredProcedures.sql &
 	// --skip-extended-insert
 	/*

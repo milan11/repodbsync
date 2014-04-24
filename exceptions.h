@@ -7,5 +7,5 @@
 #define PRINT(exception) std::cerr << exception.what() << std::endl;
 
 #define HANDLE_RETHROW(text) catch (const std::runtime_error &e) { PRINT(e); THROW(text); }
-#define HANDLE_PRINT catch (const std::runtime_error &e) { PRINT(e); }
+#define HANDLE_PRINT_AND_RETURN catch (const std::runtime_error &e) { PRINT(e); return 1; }
 #define HANDLE_IGNORE catch (const std::runtime_error &e) {}
