@@ -10,6 +10,10 @@
 
 const std::string DbOperations::versionTableName = "VersionInfo";
 
+// mysqldump --host localhost -uroot -p.. --compact  --skip-extended-insert --order-by-primary --no-create-info --where "te=..." m_local abc
+// mysqldump -h... -u... -p... --no-data --no-create-info --routines > MySQLStoredProcedures.sql &
+// --skip-extended-insert
+
 DbOperations::DbOperations(const Config_Db &config, Temp &temp)
 	:
 	  config(config),
@@ -39,6 +43,17 @@ void DbOperations::exportTable(const std::string &tableName, const boost::filesy
 	executeCommand(command.str());
 }
 
+std::string quoteCommandArgument(const std::string &orig) {
+	const std::string quote = "\"";
+	const std::string backslash = "\\";
+
+	std::string escaped = orig;
+	boost::algorithm::replace_all(escaped, backslash, backslash + backslash);
+	boost::algorithm::replace_all(escaped, quote, backslash + quote);
+
+	return quote + escaped + quote;
+}
+
 void DbOperations::exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) {
 	std::ostringstream command;
 
@@ -53,38 +68,16 @@ void DbOperations::exportData(const std::string &tableName, const std::string &i
 	;
 
 	if (! ignoreWhere.empty()) {
-		std::string ignoreWhereReplaced = ignoreWhere;
-		boost::algorithm::replace_all(ignoreWhereReplaced, "'", "\\'");
-		//boost::algorithm::replace_all(ignoreWhereReplaced, "\\", "\\\\");
-		command << " --where='NOT(" << ignoreWhereReplaced << ")'";
+		const std::string whereCondition = "NOT(" + ignoreWhere + ")";
+
+		command
+			<< " --where "
+			<< quoteCommandArgument(whereCondition);
 	}
 
 	command << " > " << file.string();
 
 	executeCommand(command.str());
-	// mysqldump --host localhost -uroot -p.. --compact  --skip-extended-insert --order-by-primary --no-create-info --where "te=..." m_local abc
-	// mysqldump -h... -u... -p... --no-data --no-create-info --routines > MySQLStoredProcedures.sql &
-	// --skip-extended-insert
-	/*
-	std::ostringstream command;
-
-	Temp tempDir = temp.createDir();
-	TempFile schemaFile = tempDir.createFile(tableName + ".sql");
-	TempFile dataFile = tempDir.createFile(tableName + ".txt");
-
-	command << "mysqldump";
-	appendConnectionParams(command);
-	command << ' ' << tableName;
-	command
-		<< " --fields-terminated-by=','"
-		<< " --tab=" << tempDir.path().string()
-	;
-
-	::getchar();
-	executeCommand(command.str());
-
-	boost::filesystem::copy(dataFile.path(), file);
-	*/
 }
 
 void DbOperations::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {
