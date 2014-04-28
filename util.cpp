@@ -11,12 +11,6 @@ void createDirIfNotExists(const boost::filesystem::path &dir) {
 	}
 }
 
-void executeCommand(const std::string &command) {
-	if (::system(command.c_str()) != 0) {
-		THROW(boost::format("command failed: %1%") % command);
-	}
-}
-
 std::string toAlignedString(const uint32_t number, const size_t alignTo) {
 	std::string numberString = std::to_string(number);
 	if (numberString.size() < alignTo) {

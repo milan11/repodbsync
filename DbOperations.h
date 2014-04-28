@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <ostream>
 #include <string>
 #include <set>
+#include "Command.h"
 #include "Config_Db.h"
 #include "Temp.h"
 
@@ -26,7 +26,7 @@ public:
 private:
 	std::set<std::string> getTables_internal();
 	void import_internal(const boost::filesystem::path &file);
-	void appendConnectionParams(std::ostream &os);	
+	void appendConnectionParams(Command &command);
 
 private:
 	const Config_Db &config;

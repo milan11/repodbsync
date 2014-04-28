@@ -28,56 +28,45 @@ std::set<std::string> DbOperations::getTables() {
 }
 
 void DbOperations::exportTable(const std::string &tableName, const boost::filesystem::path &file) {
-	std::ostringstream command;
+	Command command("mysqldump");
 
-	command << "mysqldump";
 	appendConnectionParams(command);
-	command << ' ' << tableName;
+
 	command
-		<< " --compact"
-		<< " --no-data"
+		.appendArgument(tableName)
+		.appendArgument("--compact")
+		.appendArgument("--no-data")
+		.appendRedirectTo(file)
+		.execute()
 	;
-
-	command << " > " << file.string();
-
-	executeCommand(command.str());
-}
-
-std::string quoteCommandArgument(const std::string &orig) {
-	const std::string quote = "\"";
-	const std::string backslash = "\\";
-
-	std::string escaped = orig;
-	boost::algorithm::replace_all(escaped, backslash, backslash + backslash);
-	boost::algorithm::replace_all(escaped, quote, backslash + quote);
-
-	return quote + escaped + quote;
 }
 
 void DbOperations::exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) {
-	std::ostringstream command;
+	Command command("mysqldump");
 
-	command << "mysqldump";
 	appendConnectionParams(command);
-	command << ' ' << tableName;
+
 	command
-		<< " --compact"
-		<< " --no-create-info"
-		<< " --skip-extended-insert"
-		<< " --order-by-primary"
+		.appendArgument(tableName)
+		.appendArgument("--compact")
+		.appendArgument("--no-create-info")
+		.appendArgument("--skip-extended-insert")
+		.appendArgument("--order-by-primary")
 	;
 
 	if (! ignoreWhere.empty()) {
 		const std::string whereCondition = "NOT(" + ignoreWhere + ")";
 
 		command
-			<< " --where "
-			<< quoteCommandArgument(whereCondition);
+			.appendArgument("--where")
+			.appendArgument(whereCondition)
+		;
 	}
 
-	command << " > " << file.string();
-
-	executeCommand(command.str());
+	command
+		.appendRedirectTo(file)
+		.execute()
+	;
 }
 
 void DbOperations::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {
@@ -90,32 +79,30 @@ void DbOperations::import(const boost::filesystem::path &file) {
 }
 
 void DbOperations::deleteTable(const std::string &tableName) {
-	std::ostringstream command;
+	Command command("mysql");
 
-	command << "mysql";
 	appendConnectionParams(command);
-	command
-		<< " -e 'SET foreign_key_checks = 0; DROP TABLE " << tableName << "; SET foreign_key_checks = 1;'";
-	;
 
-	executeCommand(command.str());
+	command
+		.appendArgument("-e")
+		.appendArgument("SET foreign_key_checks = 0; DROP TABLE " + tableName + "; SET foreign_key_checks = 1;")
+		.execute();
 }
 
 std::set<std::string> DbOperations::getTableDependencies(const std::string &tableName) {
 	TempFile tableDump = temp.createFile();
 
-	std::ostringstream command;
+	Command command("mysqldump");
 
-	command << "mysqldump";
 	appendConnectionParams(command);
-	command << ' ' << tableName;
-	command
-		<< " --skip-comments"
-		<< " --no-data"
-		<< " > " << tableDump.path().string();
-	;
 
-	executeCommand(command.str());
+	command
+		.appendArgument(tableName)
+		.appendArgument("--skip-comments")
+		.appendArgument("--no-data")
+		.appendRedirectTo(tableDump.path())
+		.execute()
+	;
 
 	std::set<std::string> result;
 	LinesReader reader(tableDump.path());
@@ -156,15 +143,15 @@ void DbOperations::makeVersioned() {
 uint32_t DbOperations::getVersion() {
 	TempFile version = temp.createFile();
 
-	std::ostringstream command;
-	command << "mysqldump";
-	appendConnectionParams(command);
-	command << ' ' << versionTableName;
-	command
-		<< " > " << version.path().string();
-	;
+	Command command("mysqldump");
 
-	executeCommand(command.str());
+	appendConnectionParams(command);
+
+	command
+		.appendArgument(versionTableName)
+		.appendRedirectTo(version.path())
+		.execute()
+	;
 
 	LinesReader reader(version.path());
 	while (boost::optional<std::string> line = reader.readLine()) {
@@ -184,30 +171,30 @@ uint32_t DbOperations::getVersion() {
 }
 
 void DbOperations::setVersion(const uint32_t version) {
-	std::ostringstream command;
+	Command command("mysql");
 
-	command << "mysql";
 	appendConnectionParams(command);
-	command
-		<< " -e 'UPDATE " << versionTableName << " SET value=" << version << "';";
-	;
 
-	executeCommand(command.str());
+	command
+		.appendArgument("-e")
+		.appendArgument("UPDATE " + versionTableName + " SET value=" + std::to_string(version))
+		.execute()
+	;
 }
 
 std::set<std::string> DbOperations::getTables_internal() {
 	TempFile tables = temp.createFile();
 
-	std::ostringstream command;
-	command << "mysqldump";
-	appendConnectionParams(command);
-	command
-		<< " --compact"
-		<< " --no-data"
-		<< " > " << tables.path().string();
-	;
+	Command command("mysqldump");
 
-	executeCommand(command.str());
+	appendConnectionParams(command);
+
+	command
+		.appendArgument("--compact")
+		.appendArgument("--no-data")
+		.appendRedirectTo(tables.path())
+		.execute()
+	;
 
 	std::set<std::string> result;
 	LinesReader reader(tables.path());
@@ -226,22 +213,26 @@ std::set<std::string> DbOperations::getTables_internal() {
 }
 
 void DbOperations::import_internal(const boost::filesystem::path &file) {
-	std::ostringstream command;
+	Command command("mysql");
 
-	command << "mysql";
 	appendConnectionParams(command);
-	command
-		<< " < " << file.string();
-	;
 
-	executeCommand(command.str());
+	command
+		.appendRedirectFrom(file)
+		.execute()
+	;
 }
 
-void DbOperations::appendConnectionParams(std::ostream &os) {
-	os
-		<< " --host " << config.host
-		<< " -u " << config.user
-		<< " -p" << config.password
-		<< " " << config.database
+void DbOperations::appendConnectionParams(Command &command) {
+	command
+		.appendArgument("--host")
+		.appendArgument(config.host)
+
+		.appendArgument("-u")
+		.appendArgument(config.user)
+
+		.appendArgument("-p" + config.password)
+
+		.appendArgument(config.database)
 	;
 }
