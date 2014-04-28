@@ -60,7 +60,7 @@ Please note that these descriptions refer to the state when everyone already has
 
 #### B. Someone has already put their repository state to our shared repository. I want to synchronize my own development database to reflect the state in the repository.
 
-##### 1. Checkout the repository and find the database directory
+##### 1. Checkout the repository and find the database directory.
 * the database directory should contain a directory called "scripts" and maybe .gitignore, ignore\_data.txt and ignore\_tables.txt files
 
 ##### 2. Set up the tool (fill the configuration file).
@@ -76,7 +76,7 @@ Please note that these descriptions refer to the state when everyone already has
 * the tool will ask you if it can apply each script automatically; but maybe you will have to make some changes in your local development database manually and let the tool increment the database version only
 * after all scripts are applied, the tool helps you to add scripts reflecting your own database changes to the repository; see: E. Common instructions - adding database scripts to the repository
 
-##### 5. Commit
+##### 5. Commit.
 * commit new .sql scripts to the shared repository
 
 #### C. Common instructions - settings file
