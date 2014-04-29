@@ -15,7 +15,7 @@
 
 int main();
 void main_inner();
-Config createConfig();
+Config createConfig(const DatabaseTypes &databaseTypes);
 void ensureIgnoreFilesExist();
 std::set<std::string> loadIgnoredTables();
 std::vector<IgnoredData> loadIgnoredData();

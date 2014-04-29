@@ -6,6 +6,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/range/adaptor/reversed.hpp>
+#include "DatabaseTypes.h"
 #include "LinesReader.h"
 #include "Question.h"
 #include "SafeWriter.h"
@@ -34,7 +35,9 @@ int main() {
 }
 
 void main_inner() {
-	Config c = createConfig();
+	DatabaseTypes databaseTypes;
+
+	Config config = createConfig(databaseTypes);
 
 	ensureIgnoreFilesExist();
 
@@ -47,35 +50,35 @@ void main_inner() {
 	std::set<std::string> ignoredTables = loadIgnoredTables();
 	std::vector<IgnoredData> ignoredData = loadIgnoredData();
 
-	DbOperations dbLocal(c.getDbLocal(), temp);
-	DbOperations dbTemp(c.getDbTemp(), temp);
+	std::unique_ptr<DbOperations> dbLocal = databaseTypes.createDb(config.getDbType(), config.getDbLocal(), temp);
+	std::unique_ptr<DbOperations> dbTemp = databaseTypes.createDb(config.getDbType(), config.getDbTemp(), temp);
 
 	try {
-		clearDatabase(dbTemp);
+		clearDatabase(*dbTemp);
 	} HANDLE_RETHROW("Unable to clear the temporary database.");
 
 	try {
-		importScripts(dbTemp, scripts);
+		importScripts(*dbTemp, scripts);
 	} HANDLE_RETHROW("Unable to import data to the temporary database using scripts in the repository.");
 
-	ensureIsVersioned(dbLocal);
-	ensureNotHigherVersionThan(repositoryVersion, dbLocal);
+	ensureIsVersioned(*dbLocal);
+	ensureNotHigherVersionThan(repositoryVersion, *dbLocal);
 
-	applyMissingScripts(dbLocal, scripts);
+	applyMissingScripts(*dbLocal, scripts);
 
-	SortedTables sortedTables = sortTables(dbLocal, dbTemp, ignoredTables);
+	SortedTables sortedTables = sortTables(*dbLocal, *dbTemp, ignoredTables);
 
-	Different different = handleBoth(sortedTables.both, dbLocal, dbTemp, outs, ignoredData, temp);
+	Different different = handleBoth(sortedTables.both, *dbLocal, *dbTemp, outs, ignoredData, temp);
 
 	uint32_t nextScriptTargetVersion = repositoryVersion + 1;
-	handleRepositoryOnly(sortedTables.repositoryOnly, nextScriptTargetVersion, dbLocal, outs);
-	handleLocalOnly(sortedTables.localOnly, nextScriptTargetVersion, dbLocal, outs, ignoredData, temp);
+	handleRepositoryOnly(sortedTables.repositoryOnly, nextScriptTargetVersion, *dbLocal, outs);
+	handleLocalOnly(sortedTables.localOnly, nextScriptTargetVersion, *dbLocal, outs, ignoredData, temp);
 
 	printDifferences(sortedTables, different);
 }
 
-Config createConfig() {
-	Config c(rootDir / configFileName);
+Config createConfig(const DatabaseTypes &databaseTypes) {
+	Config c(rootDir / configFileName, databaseTypes);
 
 	if (! c.fileExists()) {
 		if (! boost::filesystem::is_empty(rootDir)) {
