@@ -1,4 +1,4 @@
-#include "DbOperations.h"
+#include "Database_MySQL.h"
 
 #include <sstream>
 #include <boost/algorithm/string.hpp>
@@ -8,26 +8,26 @@
 #include "exceptions.h"
 #include "util.h"
 
-const std::string DbOperations::versionTableName = "VersionInfo";
+const std::string Database_MySQL::versionTableName = "VersionInfo";
 
 // mysqldump --host localhost -uroot -p.. --compact  --skip-extended-insert --order-by-primary --no-create-info --where "te=..." m_local abc
 // mysqldump -h... -u... -p... --no-data --no-create-info --routines > MySQLStoredProcedures.sql &
 // --skip-extended-insert
 
-DbOperations::DbOperations(const Config_Db &config, Temp &temp)
+Database_MySQL::Database_MySQL(const Config_Db &config, Temp &temp)
 	:
 	  config(config),
 	  temp(temp)
 {
 }
 
-std::set<std::string> DbOperations::getTables() {
+std::set<std::string> Database_MySQL::getTables() {
 	std::set<std::string> tables = getTables_internal();
 	tables.erase(versionTableName);
 	return tables;
 }
 
-void DbOperations::exportTable(const std::string &tableName, const boost::filesystem::path &file) {
+void Database_MySQL::exportTable(const std::string &tableName, const boost::filesystem::path &file) {
 	Command command("mysqldump");
 
 	appendConnectionParams(command);
@@ -41,7 +41,7 @@ void DbOperations::exportTable(const std::string &tableName, const boost::filesy
 	;
 }
 
-void DbOperations::exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) {
+void Database_MySQL::exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) {
 	Command command("mysqldump");
 
 	appendConnectionParams(command);
@@ -69,16 +69,16 @@ void DbOperations::exportData(const std::string &tableName, const std::string &i
 	;
 }
 
-void DbOperations::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {
+void Database_MySQL::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {
 	SafeWriter writer(file);
 	writer.writeLine("DROP TABLE " + tableName + ";");
 }
 
-void DbOperations::import(const boost::filesystem::path &file) {
+void Database_MySQL::import(const boost::filesystem::path &file) {
 	import_internal(file);
 }
 
-void DbOperations::deleteTable(const std::string &tableName) {
+void Database_MySQL::deleteTable(const std::string &tableName) {
 	Command command("mysql");
 
 	appendConnectionParams(command);
@@ -89,7 +89,7 @@ void DbOperations::deleteTable(const std::string &tableName) {
 		.execute();
 }
 
-std::set<std::string> DbOperations::getTableDependencies(const std::string &tableName) {
+std::set<std::string> Database_MySQL::getTableDependencies(const std::string &tableName) {
 	TempFile tableDump = temp.createFile();
 
 	Command command("mysqldump");
@@ -123,12 +123,12 @@ std::set<std::string> DbOperations::getTableDependencies(const std::string &tabl
 	return result;
 }
 
-bool DbOperations::isVersioned() {
+bool Database_MySQL::isVersioned() {
 	std::set<std::string> tables = getTables_internal();
 	return tables.find(versionTableName) != tables.end();
 }
 
-void DbOperations::makeVersioned() {
+void Database_MySQL::makeVersioned() {
 	TempFile versionTableCreation = temp.createFile();
 
 	SafeWriter writer(versionTableCreation.path());
@@ -140,7 +140,7 @@ void DbOperations::makeVersioned() {
 	import_internal(versionTableCreation.path());
 }
 
-uint32_t DbOperations::getVersion() {
+uint32_t Database_MySQL::getVersion() {
 	TempFile version = temp.createFile();
 
 	Command command("mysqldump");
@@ -170,7 +170,7 @@ uint32_t DbOperations::getVersion() {
 	THROW("Unable to get version info.");
 }
 
-void DbOperations::setVersion(const uint32_t version) {
+void Database_MySQL::setVersion(const uint32_t version) {
 	Command command("mysql");
 
 	appendConnectionParams(command);
@@ -182,7 +182,7 @@ void DbOperations::setVersion(const uint32_t version) {
 	;
 }
 
-std::set<std::string> DbOperations::getTables_internal() {
+std::set<std::string> Database_MySQL::getTables_internal() {
 	TempFile tables = temp.createFile();
 
 	Command command("mysqldump");
@@ -212,7 +212,7 @@ std::set<std::string> DbOperations::getTables_internal() {
 	return result;
 }
 
-void DbOperations::import_internal(const boost::filesystem::path &file) {
+void Database_MySQL::import_internal(const boost::filesystem::path &file) {
 	Command command("mysql");
 
 	appendConnectionParams(command);
@@ -223,7 +223,7 @@ void DbOperations::import_internal(const boost::filesystem::path &file) {
 	;
 }
 
-void DbOperations::appendConnectionParams(Command &command) {
+void Database_MySQL::appendConnectionParams(Command &command) {
 	command
 		.appendArgument("--host")
 		.appendArgument(config.host)

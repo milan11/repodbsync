@@ -1,6 +1,7 @@
 #include "DatabaseTypes.h"
 
 #include <boost/algorithm/string/join.hpp>
+#include "Database_MySQL.h"
 #include "exceptions.h"
 
 DatabaseTypes::DatabaseTypes() {
@@ -26,12 +27,12 @@ DatabaseType DatabaseTypes::fromString(const std::string &str) const {
 	return it->second;
 }
 
-std::unique_ptr<DbOperations> DatabaseTypes::createDb(const DatabaseType type, const Config_Db &config, Temp &temp) const {
+std::unique_ptr<Database> DatabaseTypes::createDb(const DatabaseType type, const Config_Db &config, Temp &temp) const {
 	switch (type) {
 		case DatabaseType::MYSQL:
-			return std::unique_ptr<DbOperations>(new DbOperations(config, temp));
+			return std::unique_ptr<Database>(new Database_MySQL(config, temp));
 		case DatabaseType::POSTGRESQL:
-			return std::unique_ptr<DbOperations>(new DbOperations(config, temp));
+			return std::unique_ptr<Database>(new Database_MySQL(config, temp));
 		default:
 			THROW("Unsupported database type (createDb)");
 	}

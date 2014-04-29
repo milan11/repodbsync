@@ -50,8 +50,8 @@ void main_inner() {
 	std::set<std::string> ignoredTables = loadIgnoredTables();
 	std::vector<IgnoredData> ignoredData = loadIgnoredData();
 
-	std::unique_ptr<DbOperations> dbLocal = databaseTypes.createDb(config.getDbType(), config.getDbLocal(), temp);
-	std::unique_ptr<DbOperations> dbTemp = databaseTypes.createDb(config.getDbType(), config.getDbTemp(), temp);
+	std::unique_ptr<Database> dbLocal = databaseTypes.createDb(config.getDbType(), config.getDbLocal(), temp);
+	std::unique_ptr<Database> dbTemp = databaseTypes.createDb(config.getDbType(), config.getDbTemp(), temp);
 
 	try {
 		clearDatabase(*dbTemp);
@@ -172,19 +172,19 @@ IgnoredData parseIgnoredDataLine(const std::string &line) {
 	return IgnoredData(std::move(tableName), std::move(where));
 }
 
-void clearDatabase(DbOperations &db) {
+void clearDatabase(Database &db) {
 	for (const std::string &tableName : db.getTables()) {
 		db.deleteTable(tableName);
 	}
 }
 
-void importScripts(DbOperations &db, const Scripts &scripts) {
+void importScripts(Database &db, const Scripts &scripts) {
 	for (const boost::filesystem::path &script : scripts.getFiles()) {
 		db.import(script);
 	}
 }
 
-void ensureIsVersioned(DbOperations &db) {
+void ensureIsVersioned(Database &db) {
 	if (! db.isVersioned()) {
 		Question question;
 		question.setText("The local database is not versioned. Add version information?");
@@ -198,7 +198,7 @@ void ensureIsVersioned(DbOperations &db) {
 	}
 }
 
-void ensureNotHigherVersionThan(const uint32_t maxAllowedVersion, DbOperations &db) {
+void ensureNotHigherVersionThan(const uint32_t maxAllowedVersion, Database &db) {
 	if (db.getVersion() > maxAllowedVersion) {
 		Question question;
 		question.setText("The local database has higher version than the repository. Repair this by setting database version to the repository version? Current database version: " + std::to_string(db.getVersion()) + ", Current repository version: " + std::to_string(maxAllowedVersion));
@@ -212,7 +212,7 @@ void ensureNotHigherVersionThan(const uint32_t maxAllowedVersion, DbOperations &
 	}
 }
 
-void applyMissingScripts(DbOperations &db, const Scripts &scripts) {
+void applyMissingScripts(Database &db, const Scripts &scripts) {
 	Question question;
 	const Question::OptionIndex option_automatic = question.addOption("y", "Apply script automatically.");
 	(void)question.addOption("n", "Increment the version only - if you have changed your local database manually to reflect the changes in this script or if you already had your database in the target state (e.g. when you just created this new script to reflect your local database).");
@@ -247,7 +247,7 @@ void applyMissingScripts(DbOperations &db, const Scripts &scripts) {
 	}
 }
 
-SortedTables sortTables(DbOperations &dbLocal, DbOperations &dbTemp, std::set<std::string> &ignoredTables) {
+SortedTables sortTables(Database &dbLocal, Database &dbTemp, std::set<std::string> &ignoredTables) {
 	SortedTables sortedTables;
 
 	std::set<std::string> tablesInLocal = dbLocal.getTables();
@@ -281,7 +281,7 @@ SortedTables sortTables(DbOperations &dbLocal, DbOperations &dbTemp, std::set<st
 	return sortedTables;
 }
 
-std::vector<std::string> sortByDependencies(const std::vector<std::string> &tables, DbOperations &db) {
+std::vector<std::string> sortByDependencies(const std::vector<std::string> &tables, Database &db) {
 	std::map<std::string, std::set<std::string> > tablesWithDependencies;
 	for (const std::string &table : tables) {
 		tablesWithDependencies[table] = db.getTableDependencies(table);
@@ -326,7 +326,7 @@ std::vector<std::string> sortByDependencies(const std::vector<std::string> &tabl
 	return result;
 }
 
-Different handleBoth(const std::vector<std::string> &tables, DbOperations &dbLocal, DbOperations &dbTemp, Outs &outs, std::vector<IgnoredData> &ignoredData, Temp &temp) {
+Different handleBoth(const std::vector<std::string> &tables, Database &dbLocal, Database &dbTemp, Outs &outs, std::vector<IgnoredData> &ignoredData, Temp &temp) {
 	Different different;
 
 	for (const std::string &table : tables) {
@@ -389,7 +389,7 @@ boost::optional<std::string> getIgnoredDataWhere(const std::string &tableName, c
 	return where.str();
 }
 
-void handleRepositoryOnly(const std::vector<std::string> &tables, uint32_t &nextScriptTargetVersion, DbOperations &dbLocal, Outs &outs) {
+void handleRepositoryOnly(const std::vector<std::string> &tables, uint32_t &nextScriptTargetVersion, Database &dbLocal, Outs &outs) {
 	for (const std::string &table : tables) {
 		const std::string scriptFileName = ScriptProperties(nextScriptTargetVersion, "delete_" + table).toFileName();
 		dbLocal.printDeleteTable(table, outs.createFile(scriptFileName));
@@ -397,7 +397,7 @@ void handleRepositoryOnly(const std::vector<std::string> &tables, uint32_t &next
 	}
 }
 
-void handleLocalOnly(const std::vector<std::string> &tables, uint32_t &nextScriptTargetVersion, DbOperations &dbLocal, Outs &outs, std::vector<IgnoredData> &ignoredData, Temp &temp) {
+void handleLocalOnly(const std::vector<std::string> &tables, uint32_t &nextScriptTargetVersion, Database &dbLocal, Outs &outs, std::vector<IgnoredData> &ignoredData, Temp &temp) {
 	for (const std::string &table : tables) {
 		const std::string scriptFileName = ScriptProperties(nextScriptTargetVersion, "create_" + table).toFileName();
 		dbLocal.exportTable(table, outs.createFile(scriptFileName));

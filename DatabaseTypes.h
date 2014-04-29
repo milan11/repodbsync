@@ -3,7 +3,7 @@
 #include <string>
 #include <boost/bimap.hpp>
 #include "Config_Db.h"
-#include "DbOperations.h"
+#include "Database.h"
 #include "Temp.h"
 
 enum class DatabaseType {
@@ -17,7 +17,7 @@ public:
 
 	std::string toString(const DatabaseType type) const;
 	DatabaseType fromString(const std::string &str) const;
-	std::unique_ptr<DbOperations> createDb(const DatabaseType type, const Config_Db &config, Temp &temp) const;
+	std::unique_ptr<Database> createDb(const DatabaseType type, const Config_Db &config, Temp &temp) const;
 
 private:
 	std::vector<std::string> getSupportedTypesStrings() const;
