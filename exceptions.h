@@ -1,8 +1,11 @@
 #pragma once
 
+#include <string>
 #include <boost/format.hpp>
 
-#define THROW(text) throw std::runtime_error((boost::format(text).str() + " " + __FILE__ + " (" + std::to_string(__LINE__) + ")").c_str())
+std::string stripDirectories(const std::string &path);
+
+#define THROW(text) throw std::runtime_error((boost::format(text).str() + " [" + stripDirectories(__FILE__) + " " + std::to_string(__LINE__) + "]").c_str())
 
 #define PRINT(exception) std::cerr << exception.what() << std::endl;
 
