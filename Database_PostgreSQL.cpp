@@ -76,6 +76,7 @@ void Database_PostgreSQL::deleteTable(const std::string &tableName) {
 	appendConnectionParamsAndVars_psql(command);
 
 	command
+		.appendArgument("--quiet")
 		.appendArgument("-c")
 		.appendArgument("ALTER TABLE " + quoteName(tableName) + " DISABLE trigger ALL; DROP TABLE " + quoteName(tableName) + ";")
 		.execute();
@@ -171,6 +172,7 @@ void Database_PostgreSQL::setVersion(const uint32_t version) {
 	appendConnectionParamsAndVars_psql(command);
 
 	command
+		.appendArgument("--quiet")
 		.appendArgument("-c")
 		.appendArgument("UPDATE " + quoteName(versionTableName) + " SET value=" + std::to_string(version))
 		.execute()
@@ -186,6 +188,7 @@ std::set<std::string> Database_PostgreSQL::getTables_internal() {
 	appendFormattingParams_psql(command);
 
 	command
+		.appendArgument("--quiet")
 		.appendArgument("-c")
 		.appendArgument("\\dt")
 		.appendRedirectTo(tables.path())
@@ -218,6 +221,7 @@ void Database_PostgreSQL::import_internal(const boost::filesystem::path &file) {
 	appendConnectionParamsAndVars_psql(command);
 
 	command
+		.appendArgument("--quiet")
 		.appendArgument("-f")
 		.appendArgument(file.string())
 		.execute()
