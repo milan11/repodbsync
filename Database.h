@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <set>
+#include <boost/filesystem/path.hpp>
 
 class Database {
 public:

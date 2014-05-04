@@ -19,12 +19,11 @@ public:
 	const Config_Db &getDbTemp() const;
 
 private:
+	const boost::filesystem::path file;
+	const DatabaseTypes &databaseTypes;
+
 	DatabaseType dbType;
 	Config_Db dbLocal;
 	Config_Db dbTemp;
-
-	const boost::filesystem::path file;
-
-	const DatabaseTypes &databaseTypes;
 
 };

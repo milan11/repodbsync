@@ -135,7 +135,7 @@ void Database_MySQL::makeVersioned() {
 	writer.writeLine("CREATE TABLE `" + versionTableName + "` (");
 	writer.writeLine("`value` int(11) NOT NULL");
 	writer.writeLine(") ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-	writer.writeLine("INSERT INTO VersionInfo(value) VALUES(0);");
+	writer.writeLine("INSERT INTO " + versionTableName + "(value) VALUES(0);");
 
 	import_internal(versionTableCreation.path());
 }

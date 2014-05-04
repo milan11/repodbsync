@@ -1,5 +1,6 @@
 #include "Command.h"
 
+#include <boost/algorithm/string/replace.hpp>
 #include "exceptions.h"
 
 Command::Command(const std::string &command) {
@@ -27,12 +28,39 @@ Command &Command::appendRedirectFrom(const boost::filesystem::path &path) {
 	return *this;
 }
 
+Command &Command::setVariable(const std::string &name, const std::string &value) {
+	variables[name] = value;
+
+	return *this;
+}
+
 void Command::execute() {
-	const std::string command = ss.str();
+	const std::string command = buildCommand();
 
 	if (::system(command.c_str()) != 0) {
 		THROW(boost::format("command failed: %1%") % command);
 	}
+}
+
+std::string Command::buildCommand() const {
+	std::ostringstream tmp;
+
+	for (VariablesMap::const_iterator it = variables.begin(); it != variables.end(); ++it) {
+		if (it != variables.begin()) {
+			tmp << ' ';
+		}
+		tmp << it->first;
+		tmp << '=';
+		tmp << quotePart(it->second);
+	}
+
+	if (! variables.empty()) {
+		tmp << ' ';
+	}
+
+	tmp << ss.str();
+
+	return tmp.str();
 }
 
 std::string Command::quotePart(const std::string &orig) {

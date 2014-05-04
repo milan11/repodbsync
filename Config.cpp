@@ -7,7 +7,8 @@
 Config::Config(boost::filesystem::path file, const DatabaseTypes &databaseTypes)
 	:
 	  file(std::move(file)),
-	  databaseTypes(databaseTypes)
+	  databaseTypes(databaseTypes),
+	  dbType(DatabaseType::MYSQL)
 {
 }
 

@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string/join.hpp>
 #include "Database_MySQL.h"
+#include "Database_PostgreSQL.h"
 #include "exceptions.h"
 
 DatabaseTypes::DatabaseTypes() {
@@ -32,7 +33,7 @@ std::unique_ptr<Database> DatabaseTypes::createDb(const DatabaseType type, const
 		case DatabaseType::MYSQL:
 			return std::unique_ptr<Database>(new Database_MySQL(config, temp));
 		case DatabaseType::POSTGRESQL:
-			return std::unique_ptr<Database>(new Database_MySQL(config, temp));
+			return std::unique_ptr<Database>(new Database_PostgreSQL(config, temp));
 		default:
 			THROW("Unsupported database type (createDb)");
 	}
