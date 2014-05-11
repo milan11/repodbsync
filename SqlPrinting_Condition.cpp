@@ -18,11 +18,9 @@ void SqlPrinter_Condition::operator()(const sql::condition::And &c) const {
 }
 
 void SqlPrinter_Condition::operator()(const sql::condition::Not &c) const {
-	s << "(";
 	s << " NOT ";
 	s << "(";
 	boost::apply_visitor(*this, c.condition);
-	s << ")";
 	s << ")";
 }
 
@@ -43,12 +41,12 @@ void SqlPrinter_Condition::operator()(const sql::condition::Comparison &c) const
 
 void SqlPrinter_Condition::printList(const sql::condition::List &c, const std::string &separator) const
 {
-	s << "(";
 	for (std::vector<sql::condition::Condition>::const_iterator it = c.conditions.begin(); it != c.conditions.end(); ++it) {
 		if (it != c.conditions.begin()) {
 			s << separator;
 		}
+		s << "(";
 		boost::apply_visitor(*this, *it);
+		s << ")";
 	}
-	s << ")";
 }
