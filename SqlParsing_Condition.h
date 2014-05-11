@@ -10,8 +10,8 @@
 namespace sql_parsing {
 
 template <typename Iterator>
-struct ConditionGrammar : boost::spirit::qi::grammar<Iterator, sql::condition::Condition(), boost::spirit::ascii::space_type>
-{
+class ConditionGrammar : public boost::spirit::qi::grammar<Iterator, sql::condition::Condition(), boost::spirit::ascii::space_type> {
+public:
 	ConditionGrammar() : ConditionGrammar::base_type(condition)
 	{
 		namespace phx = boost::phoenix;
@@ -78,6 +78,7 @@ private:
 	rule<sql::condition::Operator()> op;
 
 	CommonRules<Iterator> common;
+
 };
 
 sql::condition::Condition parseCondition(const std::string &str);
