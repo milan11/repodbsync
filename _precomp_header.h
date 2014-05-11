@@ -8,6 +8,9 @@
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
+#include <boost/spirit/repository/include/qi_distinct.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/optional.hpp>
