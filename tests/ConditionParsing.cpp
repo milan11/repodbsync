@@ -4,6 +4,8 @@
 #include "../SqlParsing_Condition.h"
 #include "../SqlPrinting_Condition.h"
 
+namespace {
+
 void check(const std::string &toParse, const std::string &requiredResult) {
 	sql::condition::Condition condition = sql_parsing::parseCondition(toParse);
 
@@ -13,6 +15,7 @@ void check(const std::string &toParse, const std::string &requiredResult) {
 	BOOST_CHECK_EQUAL(result.str(), requiredResult);
 }
 
+}
 
 BOOST_AUTO_TEST_CASE(and_or_priority) {
 	::check(
