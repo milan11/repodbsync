@@ -103,21 +103,26 @@ void ensureIgnoreFilesExist() {
 	if (! ignoreFilesCreated) {
 		if (! boost::filesystem::exists(rootDir / ignoredTablesFileName)) {
 			SafeWriter w(rootDir / ignoredTablesFileName);
+			w.close();
 		}
 		if (! boost::filesystem::exists(rootDir / ignoredTablesLocalFileName)) {
 			SafeWriter w(rootDir / ignoredTablesLocalFileName);
+			w.close();
 		}
 		if (! boost::filesystem::exists(rootDir / ignoredDataFileName)) {
 			SafeWriter w(rootDir / ignoredDataFileName);
+			w.close();
 		}
 		if (! boost::filesystem::exists(rootDir / ignoredDataLocalFileName)) {
 			SafeWriter w(rootDir / ignoredDataLocalFileName);
+			w.close();
 		}
 		if (! boost::filesystem::exists(rootDir / gitignoreFileName)) {
 			SafeWriter w(rootDir / gitignoreFileName);
 			w.writeLine(configFileName);
 			w.writeLine(ignoredTablesLocalFileName);
 			w.writeLine(ignoredDataLocalFileName);
+			w.close();
 		}
 	}
 }

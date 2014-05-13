@@ -72,6 +72,7 @@ void Database_MySQL::exportData(const std::string &tableName, const std::string 
 void Database_MySQL::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {
 	SafeWriter writer(file);
 	writer.writeLine("DROP TABLE " + tableName + ";");
+	writer.close();
 }
 
 void Database_MySQL::import(const boost::filesystem::path &file) {
@@ -136,6 +137,7 @@ void Database_MySQL::makeVersioned() {
 	writer.writeLine("`value` int(11) NOT NULL");
 	writer.writeLine(") ENGINE=InnoDB DEFAULT CHARSET=utf8;");
 	writer.writeLine("INSERT INTO " + versionTableName + "(value) VALUES(0);");
+	writer.close();
 
 	import_internal(versionTableCreation.path());
 }

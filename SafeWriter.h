@@ -11,7 +11,11 @@ public:
 
 	void writeLine(const std::string &str);
 
+	void close();
+
 private:
 	std::ofstream os;
 	std::string fileName;
+	bool closed;
+
 };

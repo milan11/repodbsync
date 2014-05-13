@@ -65,11 +65,13 @@ void Database_PostgreSQL::exportData(const std::string &tableName, const std::st
 
 		writer.writeLine(*line);
 	}
+	writer.close();
 }
 
 void Database_PostgreSQL::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {
 	SafeWriter writer(file);
 	writer.writeLine("DROP TABLE " + quoteName(tableName) + ";");
+	writer.close();
 }
 
 void Database_PostgreSQL::import(const boost::filesystem::path &file) {
@@ -135,6 +137,7 @@ void Database_PostgreSQL::makeVersioned() {
 	writer.writeLine("value integer NOT NULL");
 	writer.writeLine(");");
 	writer.writeLine("INSERT INTO " + quoteName(versionTableName) + "(value) VALUES(0);");
+	writer.close();
 
 	import_internal(versionTableCreation.path());
 }
