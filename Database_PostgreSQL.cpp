@@ -6,6 +6,7 @@
 #include "DataFilter.h"
 #include "LinesReader.h"
 #include "SafeWriter.h"
+#include "SqlParsing_Condition.h"
 #include "exceptions.h"
 #include "util.h"
 
@@ -54,11 +55,16 @@ void Database_PostgreSQL::exportData(const std::string &tableName, const std::st
 		.execute()
 	;
 
+	sql::condition::Condition condition;
+	if (! ignoreWhere.empty()) {
+		condition = sql_parsing::parseCondition(ignoreWhere);
+	}
+
 	SafeWriter writer(file);
 	LinesReader reader(tableDump.path());
 	while (boost::optional<std::string> line = reader.readLine()) {
 		if (! ignoreWhere.empty()) {
-			if (::isInsertAndMatchesWhere(*line, ignoreWhere)) {
+			if (::isInsertAndMatchesWhere(*line, condition)) {
 				continue;
 			}
 		}
