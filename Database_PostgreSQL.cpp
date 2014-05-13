@@ -3,6 +3,7 @@
 #include <sstream>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
+#include "DataFilter.h"
 #include "LinesReader.h"
 #include "SafeWriter.h"
 #include "exceptions.h"
@@ -38,6 +39,8 @@ void Database_PostgreSQL::exportTable(const std::string &tableName, const boost:
 }
 
 void Database_PostgreSQL::exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) {
+	TempFile tableDump = temp.createFile();
+
 	Command command("pg_dump");
 
 	appendConnectionParamsAndVars_pgdump(command);
@@ -47,18 +50,21 @@ void Database_PostgreSQL::exportData(const std::string &tableName, const std::st
 		.appendArgument(tableName)
 		.appendArgument("--data-only")
 		.appendArgument("--column-inserts")
-		.appendRedirectTo(file)
+		.appendRedirectTo(tableDump.path())
 		.execute()
 	;
 
-	if (! ignoreWhere.empty()) {
-		THROW("Data ignore filters not supported for PostgreSQL.");
+	SafeWriter writer(file);
+	LinesReader reader(tableDump.path());
+	while (boost::optional<std::string> line = reader.readLine()) {
+		if (! ignoreWhere.empty()) {
+			if (::isInsertAndMatchesWhere(*line, ignoreWhere)) {
+				continue;
+			}
+		}
+
+		writer.writeLine(*line);
 	}
-
-	command
-		.appendRedirectTo(file)
-		.execute()
-	;
 }
 
 void Database_PostgreSQL::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {
