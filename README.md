@@ -11,8 +11,19 @@ Each run does these 2 steps:
 2.  Helping with creating scripts in the repository which reflect changes in your local database.
 Applying of these 2 steps (maybe in more iterations) makes the local database synchronized with the repository.
 
+### BUILD
+git clone git@github.com:milan11/repodbsync.git
+cd repodbsync
+cmake
+make
+
+possible cmake arguments:
+* debug build: -DCMAKE_BUILD_TYPE=Debug
+* build executable running tests instead of the normal executable: -DTESTMODE=1
+
 ### USAGE
 Just run it in some source code repository directory where you want the sql scripts and some configuration to be placed. It will guide you through the configuration and synchronization process.
+The executable does not process any arguments.
 
 ### SUPPORTED ENVIRONMENT
 * database support: MySQL only
@@ -109,4 +120,4 @@ Please note that these descriptions refer to the state when everyone already has
 * try Windows MSVC build
 * provide downloadable binaries
 * real-world examples (e.g. handling a standard Drupal database)
-
+* stored procedures
