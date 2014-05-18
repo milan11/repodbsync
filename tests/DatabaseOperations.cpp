@@ -1,6 +1,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "../DatabaseTypes.h"
+#include "../TextDiff.h"
 #include "DatabaseFixture.h"
 
 BOOST_AUTO_TEST_CASE(open) {
@@ -124,4 +125,68 @@ BOOST_AUTO_TEST_CASE(delete_table) {
 	expectedTables.insert("User");
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+}
+
+BOOST_AUTO_TEST_CASE(export_import_structure) {
+	Temp temp("temp_test");
+
+	TempFile dump = temp.createFile();
+
+	{
+		DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+		db.fillDataA();
+
+		db.get().exportTable("User", dump.path());
+	}
+
+	TempFile dumpAfterImport = temp.createFile();
+
+	{
+		DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+		db.get().import(dump.path());
+
+		std::set<std::string> tables = db.get().getTables();
+
+		std::set<std::string> expectedTables;
+		expectedTables.insert("User");
+
+		BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+
+		db.get().exportTable("User", dumpAfterImport.path());
+	}
+
+	TextDiff diff(dump.path(), dumpAfterImport.path());
+	BOOST_CHECK_EQUAL(diff.areEqual(), true);
+}
+
+BOOST_AUTO_TEST_CASE(export_import_data) {
+	Temp temp("temp_test");
+
+	TempFile structureDump = temp.createFile();
+	TempFile dataDump = temp.createFile();
+
+	{
+		DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+		db.fillDataA();
+
+		db.get().exportTable("User", structureDump.path());
+		db.get().exportData("User", "", dataDump.path());
+	}
+
+	TempFile dataDumpAfterImport = temp.createFile();
+
+	{
+		DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+		db.get().import(structureDump.path());
+		db.get().import(dataDump.path());
+
+		db.get().exportData("User", "", dataDumpAfterImport.path());
+	}
+
+	TextDiff diff(dataDump.path(), dataDumpAfterImport.path());
+	BOOST_CHECK_EQUAL(diff.areEqual(), true);
 }
