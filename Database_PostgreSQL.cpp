@@ -32,7 +32,7 @@ void Database_PostgreSQL::exportTable(const std::string &tableName, const boost:
 
 	command
 		.appendArgument("-t")
-		.appendArgument(tableName)
+		.appendArgument(quoteName(tableName))
 		.appendArgument("--schema-only")
 		.appendRedirectTo(file)
 		.execute()
@@ -48,7 +48,7 @@ void Database_PostgreSQL::exportData(const std::string &tableName, const std::st
 
 	command
 		.appendArgument("-t")
-		.appendArgument(tableName)
+		.appendArgument(quoteName(tableName))
 		.appendArgument("--data-only")
 		.appendArgument("--column-inserts")
 		.appendRedirectTo(tableDump.path())
@@ -97,7 +97,7 @@ std::set<std::string> Database_PostgreSQL::getTableDependencies(const std::strin
 
 	command
 		.appendArgument("-t")
-		.appendArgument(tableName)
+		.appendArgument(quoteName(tableName))
 		.appendArgument("--schema-only")
 		.appendRedirectTo(tableDump.path())
 		.execute()
@@ -153,7 +153,7 @@ uint32_t Database_PostgreSQL::getVersion() {
 
 	command
 		.appendArgument("-t")
-		.appendArgument(versionTableName)
+		.appendArgument(quoteName(versionTableName))
 		.appendArgument("--data-only")
 		.appendArgument("--inserts")
 		.appendRedirectTo(version.path())
