@@ -85,15 +85,7 @@ void Database_PostgreSQL::import(const boost::filesystem::path &file) {
 }
 
 void Database_PostgreSQL::deleteTable(const std::string &tableName) {
-	Command command("psql");
-
-	appendConnectionParamsAndVars_psql(command);
-
-	command
-		.appendArgument("--quiet")
-		.appendArgument("-c")
-		.appendArgument("ALTER TABLE " + quoteName(tableName) + " DISABLE trigger ALL; DROP TABLE " + quoteName(tableName) + ";")
-		.execute();
+	deleteTable_internal(tableName);
 }
 
 std::set<std::string> Database_PostgreSQL::getTableDependencies(const std::string &tableName) {
@@ -146,6 +138,10 @@ void Database_PostgreSQL::makeVersioned() {
 	writer.close();
 
 	import_internal(versionTableCreation.path());
+}
+
+void Database_PostgreSQL::makeNotVersioned() {
+	deleteTable_internal(versionTableName);
 }
 
 uint32_t Database_PostgreSQL::getVersion() {
@@ -241,6 +237,18 @@ void Database_PostgreSQL::import_internal(const boost::filesystem::path &file) {
 		.appendArgument(file.string())
 		.execute()
 	;
+}
+
+void Database_PostgreSQL::deleteTable_internal(const std::string &tableName) {
+	Command command("psql");
+
+	appendConnectionParamsAndVars_psql(command);
+
+	command
+		.appendArgument("--quiet")
+		.appendArgument("-c")
+		.appendArgument("ALTER TABLE " + quoteName(tableName) + " DISABLE trigger ALL; DROP TABLE " + quoteName(tableName) + ";")
+		.execute();
 }
 
 void Database_PostgreSQL::appendConnectionParamsAndVars_psql(Command &command) {

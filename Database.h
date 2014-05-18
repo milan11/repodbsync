@@ -16,6 +16,7 @@ public:
 	virtual std::set<std::string> getTableDependencies(const std::string &tableName) = 0;
 	virtual bool isVersioned() = 0;
 	virtual void makeVersioned() = 0;
+	virtual void makeNotVersioned() = 0;
 	virtual uint32_t getVersion() = 0;
 	virtual void setVersion(const uint32_t version) = 0;
 

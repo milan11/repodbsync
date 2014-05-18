@@ -20,7 +20,6 @@ void ensureIgnoreFilesExist();
 std::set<std::string> loadIgnoredTables();
 std::vector<IgnoredData> loadIgnoredData();
 IgnoredData parseIgnoredDataLine(const std::string &line);
-void clearDatabase(Database &db);
 void importScripts(Database &db, const Scripts &scripts);
 void ensureIsVersioned(Database &db);
 void ensureNotHigherVersionThan(const uint32_t maxAllowedVersion, Database &db);

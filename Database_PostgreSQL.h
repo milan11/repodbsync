@@ -18,12 +18,14 @@ public:
 	virtual std::set<std::string> getTableDependencies(const std::string &tableName);
 	virtual bool isVersioned();
 	virtual void makeVersioned();
+	virtual void makeNotVersioned();
 	virtual uint32_t getVersion();
 	virtual void setVersion(const uint32_t version);
 
 private:
 	std::set<std::string> getTables_internal();
 	void import_internal(const boost::filesystem::path &file);
+	void deleteTable_internal(const std::string &tableName);
 
 	void appendConnectionParamsAndVars_psql(Command &command);
 	void appendConnectionParamsAndVars_pgdump(Command &command);

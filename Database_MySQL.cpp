@@ -80,14 +80,7 @@ void Database_MySQL::import(const boost::filesystem::path &file) {
 }
 
 void Database_MySQL::deleteTable(const std::string &tableName) {
-	Command command("mysql");
-
-	appendConnectionParams(command);
-
-	command
-		.appendArgument("-e")
-		.appendArgument("SET foreign_key_checks = 0; DROP TABLE " + tableName + "; SET foreign_key_checks = 1;")
-		.execute();
+	deleteTable_internal(tableName);
 }
 
 std::set<std::string> Database_MySQL::getTableDependencies(const std::string &tableName) {
@@ -140,6 +133,10 @@ void Database_MySQL::makeVersioned() {
 	writer.close();
 
 	import_internal(versionTableCreation.path());
+}
+
+void Database_MySQL::makeNotVersioned() {
+	deleteTable_internal(versionTableName);
 }
 
 uint32_t Database_MySQL::getVersion() {
@@ -223,6 +220,17 @@ void Database_MySQL::import_internal(const boost::filesystem::path &file) {
 		.appendRedirectFrom(file)
 		.execute()
 	;
+}
+
+void Database_MySQL::deleteTable_internal(const std::string &tableName) {
+	Command command("mysql");
+
+	appendConnectionParams(command);
+
+	command
+		.appendArgument("-e")
+		.appendArgument("SET foreign_key_checks = 0; DROP TABLE " + tableName + "; SET foreign_key_checks = 1;")
+		.execute();
 }
 
 void Database_MySQL::appendConnectionParams(Command &command) {
