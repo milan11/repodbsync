@@ -5,13 +5,13 @@
 
 namespace {
 
-void check(const std::string &toParse, const std::string &requiredResult) {
+void check(const std::string &toParse, const std::string &expectedResult) {
 	sql::condition::Condition condition = sql_parsing::parseCondition(toParse);
 
 	std::ostringstream result;
 	boost::apply_visitor(SqlPrinter_Condition(result), condition);
 
-	BOOST_CHECK_EQUAL(result.str(), requiredResult);
+	BOOST_CHECK_EQUAL(result.str(), expectedResult);
 }
 
 }

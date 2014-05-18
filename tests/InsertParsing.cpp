@@ -5,13 +5,13 @@
 
 namespace {
 
-void check(const std::string &toParse, const std::string &requiredResult) {
+void check(const std::string &toParse, const std::string &expectedResult) {
 	sql::insert::Insert insert = sql_parsing::parseInsert(toParse);
 
 	std::ostringstream result;
 	::printInsert(insert, result);
 
-	BOOST_CHECK_EQUAL(result.str(), requiredResult);
+	BOOST_CHECK_EQUAL(result.str(), expectedResult);
 }
 
 }
