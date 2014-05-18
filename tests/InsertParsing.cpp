@@ -1,4 +1,3 @@
-//#define BOOST_TEST_MODULE InsertParsing
 #include <boost/test/unit_test.hpp>
 
 #include "../SqlParsing_Insert.h"
