@@ -190,3 +190,24 @@ BOOST_AUTO_TEST_CASE(export_import_data) {
 	TextDiff diff(dataDump.path(), dataDumpAfterImport.path());
 	BOOST_CHECK_EQUAL(diff.areEqual(), true);
 }
+
+BOOST_AUTO_TEST_CASE(print_delete_table) {
+	Temp temp("temp_test");
+
+	DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+	db.fillDataA();
+
+	TempFile deleteTable = temp.createFile();
+	db.get().printDeleteTable("Message", deleteTable.path());
+
+	db.get().import(deleteTable.path());
+
+
+	std::set<std::string> tables = db.get().getTables();
+
+	std::set<std::string> expectedTables;
+	expectedTables.insert("User");
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+}
