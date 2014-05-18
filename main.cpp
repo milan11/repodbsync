@@ -278,6 +278,7 @@ SortedTables sortTables(Database &dbLocal, Database &dbTemp, std::set<std::strin
 
 	sortedTables.localOnly = sortByDependencies(sortedTables.localOnly, dbLocal);
 	sortedTables.repositoryOnly = sortByDependencies(sortedTables.repositoryOnly, dbTemp);
+	std::reverse(sortedTables.repositoryOnly.begin(), sortedTables.repositoryOnly.end());
 
 	return sortedTables;
 }
@@ -321,8 +322,6 @@ std::vector<std::string> sortByDependencies(const std::vector<std::string> &tabl
 			}
 		}
 	}
-
-	std::reverse(result.begin(), result.end());
 
 	return result;
 }
