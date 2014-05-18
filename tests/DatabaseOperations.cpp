@@ -85,3 +85,28 @@ BOOST_AUTO_TEST_CASE(get_tables_does_not_include_versioninfo) {
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
+
+BOOST_AUTO_TEST_CASE(get_table_dependencies) {
+	DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+	db.fillDataA();
+
+	std::set<std::string> dependencies = db.get().getTableDependencies("Message");
+
+	std::set<std::string> expectedDependencies;
+	expectedDependencies.insert("User");
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(dependencies.begin(), dependencies.end(), expectedDependencies.begin(), expectedDependencies.end());
+}
+
+BOOST_AUTO_TEST_CASE(get_table_dependencies_empty) {
+	DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+	db.fillDataA();
+
+	std::set<std::string> dependencies = db.get().getTableDependencies("User");
+
+	std::set<std::string> expectedDependencies;
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(dependencies.begin(), dependencies.end(), expectedDependencies.begin(), expectedDependencies.end());
+}
