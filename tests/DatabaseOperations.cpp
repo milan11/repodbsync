@@ -225,16 +225,27 @@ BOOST_AUTO_TEST_CASE(export_data_where) {
 		db.get().exportData("User", "", dataDump_expected.path());
 	}
 
-	TempFile dataDump_filteredUsingWhere = temp.createFile();
+	std::set<std::string> thirdUserConditions;
+	thirdUserConditions.insert("id = 3");
+	thirdUserConditions.insert("name = 'Third User'");
+	thirdUserConditions.insert("id = 3 AND name = 'Third User'");
+	thirdUserConditions.insert("id = 3 OR name = 'Non Existing User'");
+	thirdUserConditions.insert("id = -3 OR name = 'Third User'");
+	thirdUserConditions.insert("NOT (id <> 3)");
+	thirdUserConditions.insert("NOT (name <> 'Third User')");
+	thirdUserConditions.insert("NOT (id <> 3 OR name <> 'Third User')");
 
-	{
+	for (const std::string &condition : thirdUserConditions) {
+		TempFile dataDump_filteredUsingWhere = temp.createFile();
+
 		DatabaseFixture db(DatabaseType::POSTGRESQL);
 
 		db.fillDataA();
 
-		db.get().exportData("User", "id = 3", dataDump_filteredUsingWhere.path());
-	}
+		db.get().exportData("User", condition, dataDump_filteredUsingWhere.path());
 
-	TextDiff diff(dataDump_expected.path(), dataDump_filteredUsingWhere.path());
-	BOOST_CHECK_EQUAL(diff.areEqual(), true);
+		TextDiff diff(dataDump_expected.path(), dataDump_filteredUsingWhere.path());
+
+		BOOST_REQUIRE_MESSAGE(diff.areEqual(), "Failed with condition: " + condition);
+	}
 }
