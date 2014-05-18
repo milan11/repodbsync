@@ -110,3 +110,18 @@ BOOST_AUTO_TEST_CASE(get_table_dependencies_empty) {
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(dependencies.begin(), dependencies.end(), expectedDependencies.begin(), expectedDependencies.end());
 }
+
+BOOST_AUTO_TEST_CASE(delete_table) {
+	DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+	db.fillDataA();
+
+	db.get().deleteTable("Message");
+
+	std::set<std::string> tables = db.get().getTables();
+
+	std::set<std::string> expectedTables;
+	expectedTables.insert("User");
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+}
