@@ -10,7 +10,7 @@ struct Fixture {
 	static std::unique_ptr<DatabaseFixture> get() { return std::unique_ptr<DatabaseFixture>(new DatabaseFixture(type, lowerCaseNames)); }
 };
 
-typedef boost::mpl::list<Fixture<DatabaseType::POSTGRESQL, false>, Fixture<DatabaseType::POSTGRESQL, true> > Fixtures;
+typedef boost::mpl::list<Fixture<DatabaseType::MYSQL>, Fixture<DatabaseType::POSTGRESQL, false>, Fixture<DatabaseType::POSTGRESQL, true> > Fixtures;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(open, F, Fixtures) {
 	std::unique_ptr<DatabaseFixture> db = F::get();

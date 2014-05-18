@@ -47,29 +47,29 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 
 	w.writeLine("CREATE TABLE " + name("User") + " (");
 	w.writeLine(name("Id") + " integer NOT NULL,");
-	w.writeLine(name("Name") + " text NOT NULL");
+	w.writeLine(name("Name") + " varchar(64) NOT NULL");
 	w.writeLine(");");
 
-	w.writeLine("ALTER TABLE ONLY " + name("User"));
+	w.writeLine("ALTER TABLE " + name("User"));
 	w.writeLine("ADD CONSTRAINT " + name("Id") + " PRIMARY KEY (" + name("Id") + ");");
 
-	w.writeLine("ALTER TABLE ONLY " + name("User"));
+	w.writeLine("ALTER TABLE " + name("User"));
 	w.writeLine("ADD CONSTRAINT " + name("Name") + " UNIQUE (" + name("Name") + ");");
 
 	w.writeLine("CREATE TABLE " + name("Message") + " (");
-	w.writeLine(name("Text") + " text NOT NULL,");
+	w.writeLine(name("Text") + " varchar(64) NOT NULL,");
 	w.writeLine(name("From") + " integer NOT NULL,");
 	w.writeLine(name("To") + " integer NOT NULL,");
 	w.writeLine(name("Date") + " date NOT NULL");
 	w.writeLine(");");
 
-	w.writeLine("CREATE INDEX " + name("Fki_from") + " ON " + name("Message") + " USING btree (" + name("From") + ");");
-	w.writeLine("CREATE INDEX " + name("Fki_to") + " ON " + name("Message") + " USING btree (" + name("To") + ");");
+	w.writeLine("CREATE INDEX " + name("Fki_from") + " ON " + name("Message") + " (" + name("From") + ");");
+	w.writeLine("CREATE INDEX " + name("Fki_to") + " ON " + name("Message") + " (" + name("To") + ");");
 
-	w.writeLine("ALTER TABLE ONLY " + name("Message"));
+	w.writeLine("ALTER TABLE " + name("Message"));
 	w.writeLine("ADD CONSTRAINT " + name("From") + " FOREIGN KEY (" + name("From") + ") REFERENCES " + name("User") + "(" + name("Id") + ");");
 
-	w.writeLine("ALTER TABLE ONLY " + name("Message"));
+	w.writeLine("ALTER TABLE " + name("Message"));
 	w.writeLine("ADD CONSTRAINT " + name("To") + " FOREIGN KEY (" + name("To") + ") REFERENCES " + name("User") + "(" + name("Id") + ");");
 
 	w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ") VALUES (1, 'First User');");
@@ -89,6 +89,10 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 std::string DatabaseFixture::name(const std::string &orig) {
 	if (type == DatabaseType::POSTGRESQL) {
 		return '"' + changeNameCase_internal(orig) + '"';
+	}
+
+	if (type == DatabaseType::MYSQL) {
+		return '`' + changeNameCase_internal(orig) + '`';
 	}
 
 	return changeNameCase_internal(orig);
