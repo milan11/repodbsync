@@ -7,11 +7,10 @@ BOOST_AUTO_TEST_CASE(open) {
 	DatabaseFixture db(DatabaseType::POSTGRESQL);
 }
 
-BOOST_AUTO_TEST_CASE(not_versioned) {
+BOOST_AUTO_TEST_CASE(initially_not_versioned) {
 	DatabaseFixture db(DatabaseType::POSTGRESQL);
 
 	BOOST_CHECK_EQUAL(db.get().isVersioned(), false);
-
 	// BOOST_CHECK_THROW(db.get().getVersion(), std::runtime_error); // TODO:
 }
 
@@ -30,5 +29,59 @@ BOOST_AUTO_TEST_CASE(make_versioned_set_version) {
 	db.get().makeVersioned();
 	db.get().setVersion(1);
 
+	BOOST_CHECK_EQUAL(db.get().isVersioned(), true);
 	BOOST_CHECK_EQUAL(db.get().getVersion(), 1);
+}
+
+BOOST_AUTO_TEST_CASE(make_not_versioned) {
+	DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+	db.get().makeVersioned();
+	db.get().setVersion(1);
+
+	db.get().makeNotVersioned();
+
+	BOOST_CHECK_EQUAL(db.get().isVersioned(), false);
+	// BOOST_CHECK_THROW(db.get().getVersion(), std::runtime_error); // TODO:
+}
+
+BOOST_AUTO_TEST_CASE(get_tables_empty) {
+	DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+	std::set<std::string> tables = db.get().getTables();
+
+	std::set<std::string> expectedTables;
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+}
+
+BOOST_AUTO_TEST_CASE(get_tables) {
+	DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+	db.fillDataA();
+
+	std::set<std::string> tables = db.get().getTables();
+
+	std::set<std::string> expectedTables;
+	expectedTables.insert("Message");
+	expectedTables.insert("User");
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+}
+
+BOOST_AUTO_TEST_CASE(get_tables_does_not_include_versioninfo) {
+	DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+	db.fillDataA();
+
+	db.get().makeVersioned();
+	db.get().setVersion(1);
+
+	std::set<std::string> tables = db.get().getTables();
+
+	std::set<std::string> expectedTables;
+	expectedTables.insert("Message");
+	expectedTables.insert("User");
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
