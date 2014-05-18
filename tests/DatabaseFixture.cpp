@@ -57,6 +57,11 @@ void DatabaseFixture::fillDataA() {
 	w.writeLine("ALTER TABLE ONLY \"Message\"");
 	w.writeLine("ADD CONSTRAINT \"to\" FOREIGN KEY (\"to\") REFERENCES \"User\"(id);");
 
+	w.writeLine("INSERT INTO \"User\" (id, name) VALUES (1, 'First User');");
+	w.writeLine("INSERT INTO \"User\" (id, name) VALUES (2, 'Second User');");
+
+	w.writeLine("INSERT INTO \"Message\" (text, \"from\", \"to\", date) VALUES ('hello', 1, 2, '2014-05-18');");
+
 	w.close();
 
 	database->import(f.path());
