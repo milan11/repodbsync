@@ -55,7 +55,7 @@ void main_inner() {
 	std::unique_ptr<Database> dbTemp = databaseTypes.createDb(config.getDbType(), config.getDbTemp(), temp);
 
 	try {
-		DatabaseUtils u(*dbTemp)
+		DatabaseUtils u(*dbTemp);
 		u.clear();
 	} HANDLE_RETHROW("Unable to clear the temporary database.");
 
