@@ -13,6 +13,7 @@ struct CommonRules {
 		using boost::spirit::qi::_val;
 		using boost::spirit::qi::_1;
 		using boost::spirit::qi::int_;
+		using boost::spirit::qi::char_;
 		using boost::spirit::qi::alpha;
 		using boost::spirit::qi::digit;
 		using boost::spirit::qi::graph;
@@ -22,11 +23,14 @@ struct CommonRules {
 		value = literal[_val = _1] | column[_val = _1];
 
 		literal = int_[_val = _1] | quoted_string[_val = _1];
-		column = lexeme[as_string[(alpha | '_' | '@' | '#') >> *(alpha | digit | '_' | '@' | '#' | '$')]][_val = _1];
 
+		auto columnName = (alpha | '_' | '@' | '#') >> *(alpha | digit | '_' | '@' | '#' | '$');
+		column = lexeme[as_string[columnName][_val = _1] | ('"' >> as_string[columnName][_val = _1] >> '"')];
+
+		auto charsExcludingQuote = *(~char_('\''));
 		quoted_string = lexeme[
-			('\'' >> as_string[*(graph - '\'')][_val += _1] >> '\'')
-			>> *('\'' >> as_string[*(graph - '\'')][_val += ("\'" + _1)] >> '\'')
+			('\'' >> as_string[charsExcludingQuote][_val += _1] >> '\'')
+			>> *('\'' >> as_string[charsExcludingQuote][_val += ('\'' + _1)] >> '\'')
 		];
 	}
 
