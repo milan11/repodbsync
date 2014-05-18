@@ -11,6 +11,8 @@ public:
 
 	Database &get();
 
+	void fillDataA();
+
 private:
 	Temp temp;
 	Config_Db config;
