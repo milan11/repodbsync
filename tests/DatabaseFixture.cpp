@@ -26,6 +26,14 @@ Database &DatabaseFixture::get() {
 }
 
 void DatabaseFixture::fillDataA() {
+	fillDataA_internal(false);
+}
+
+void DatabaseFixture::fillDataA_filtered() {
+	fillDataA_internal(true);
+}
+
+void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 	TempFile f = temp.createFile();
 
 	SafeWriter w(f.path());
@@ -59,6 +67,10 @@ void DatabaseFixture::fillDataA() {
 
 	w.writeLine("INSERT INTO \"User\" (id, name) VALUES (1, 'First User');");
 	w.writeLine("INSERT INTO \"User\" (id, name) VALUES (2, 'Second User');");
+
+	if (! withoutThirdUser) {
+		w.writeLine("INSERT INTO \"User\" (id, name) VALUES (3, 'Third User');");
+	}
 
 	w.writeLine("INSERT INTO \"Message\" (text, \"from\", \"to\", date) VALUES ('hello', 1, 2, '2014-05-18');");
 

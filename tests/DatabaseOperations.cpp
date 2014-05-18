@@ -211,3 +211,30 @@ BOOST_AUTO_TEST_CASE(print_delete_table) {
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
+
+BOOST_AUTO_TEST_CASE(export_data_where) {
+	Temp temp("temp_test");
+
+	TempFile dataDump_expected = temp.createFile();
+
+	{
+		DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+		db.fillDataA_filtered();
+
+		db.get().exportData("User", "", dataDump_expected.path());
+	}
+
+	TempFile dataDump_filteredUsingWhere = temp.createFile();
+
+	{
+		DatabaseFixture db(DatabaseType::POSTGRESQL);
+
+		db.fillDataA();
+
+		db.get().exportData("User", "id = 3", dataDump_filteredUsingWhere.path());
+	}
+
+	TextDiff diff(dataDump_expected.path(), dataDump_filteredUsingWhere.path());
+	BOOST_CHECK_EQUAL(diff.areEqual(), true);
+}

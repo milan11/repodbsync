@@ -12,6 +12,10 @@ public:
 	Database &get();
 
 	void fillDataA();
+	void fillDataA_filtered();
+
+private:
+	void fillDataA_internal(const bool &withoutThirdUser);
 
 private:
 	Temp temp;
