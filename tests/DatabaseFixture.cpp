@@ -1,12 +1,15 @@
 #include "DatabaseFixture.h"
 
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/info_parser.hpp>
 #include "../DatabaseUtils.h"
 #include "../SafeWriter.h"
 
-DatabaseFixture::DatabaseFixture(const DatabaseType &type)
+DatabaseFixture::DatabaseFixture(const DatabaseType type, const bool lowerCaseNames)
 	:
+	  type(type),
+	  lowerCaseNames(lowerCaseNames),
 	  temp("temp")
 {
 	DatabaseTypes databaseTypes;
@@ -25,6 +28,10 @@ Database &DatabaseFixture::get() {
 	return *database.get();
 }
 
+std::string DatabaseFixture::changeNameCase(const std::string &orig) {
+	return changeNameCase_internal(orig);
+}
+
 void DatabaseFixture::fillDataA() {
 	fillDataA_internal(false);
 }
@@ -38,43 +45,59 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 
 	SafeWriter w(f.path());
 
-	w.writeLine("CREATE TABLE \"User\" (");
-	w.writeLine("id integer NOT NULL,");
-	w.writeLine("name text NOT NULL");
+	w.writeLine("CREATE TABLE " + name("User") + " (");
+	w.writeLine(name("Id") + " integer NOT NULL,");
+	w.writeLine(name("Name") + " text NOT NULL");
 	w.writeLine(");");
 
-	w.writeLine("ALTER TABLE ONLY \"User\"");
-	w.writeLine("ADD CONSTRAINT id PRIMARY KEY (id);");
+	w.writeLine("ALTER TABLE ONLY " + name("User"));
+	w.writeLine("ADD CONSTRAINT " + name("Id") + " PRIMARY KEY (" + name("Id") + ");");
 
-	w.writeLine("ALTER TABLE ONLY \"User\"");
-	w.writeLine("ADD CONSTRAINT name UNIQUE (name);");
+	w.writeLine("ALTER TABLE ONLY " + name("User"));
+	w.writeLine("ADD CONSTRAINT " + name("Name") + " UNIQUE (" + name("Name") + ");");
 
-	w.writeLine("CREATE TABLE \"Message\" (");
-	w.writeLine("text text NOT NULL,");
-	w.writeLine("\"from\" integer NOT NULL,");
-	w.writeLine("\"to\" integer NOT NULL,");
-	w.writeLine("date date NOT NULL");
+	w.writeLine("CREATE TABLE " + name("Message") + " (");
+	w.writeLine(name("Text") + " text NOT NULL,");
+	w.writeLine(name("From") + " integer NOT NULL,");
+	w.writeLine(name("To") + " integer NOT NULL,");
+	w.writeLine(name("Date") + " date NOT NULL");
 	w.writeLine(");");
 
-	w.writeLine("CREATE INDEX fki_from ON \"Message\" USING btree (\"from\");");
-	w.writeLine("CREATE INDEX fki_to ON \"Message\" USING btree (\"to\");");
+	w.writeLine("CREATE INDEX " + name("Fki_from") + " ON " + name("Message") + " USING btree (" + name("From") + ");");
+	w.writeLine("CREATE INDEX " + name("Fki_to") + " ON " + name("Message") + " USING btree (" + name("To") + ");");
 
-	w.writeLine("ALTER TABLE ONLY \"Message\"");
-	w.writeLine("ADD CONSTRAINT \"from\" FOREIGN KEY (\"from\") REFERENCES \"User\"(id);");
+	w.writeLine("ALTER TABLE ONLY " + name("Message"));
+	w.writeLine("ADD CONSTRAINT " + name("From") + " FOREIGN KEY (" + name("From") + ") REFERENCES " + name("User") + "(" + name("Id") + ");");
 
-	w.writeLine("ALTER TABLE ONLY \"Message\"");
-	w.writeLine("ADD CONSTRAINT \"to\" FOREIGN KEY (\"to\") REFERENCES \"User\"(id);");
+	w.writeLine("ALTER TABLE ONLY " + name("Message"));
+	w.writeLine("ADD CONSTRAINT " + name("To") + " FOREIGN KEY (" + name("To") + ") REFERENCES " + name("User") + "(" + name("Id") + ");");
 
-	w.writeLine("INSERT INTO \"User\" (id, name) VALUES (1, 'First User');");
-	w.writeLine("INSERT INTO \"User\" (id, name) VALUES (2, 'Second User');");
+	w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ") VALUES (1, 'First User');");
+	w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ") VALUES (2, 'Second User');");
 
 	if (! withoutThirdUser) {
-		w.writeLine("INSERT INTO \"User\" (id, name) VALUES (3, 'Third User');");
+		w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ") VALUES (3, 'Third User');");
 	}
 
-	w.writeLine("INSERT INTO \"Message\" (text, \"from\", \"to\", date) VALUES ('hello', 1, 2, '2014-05-18');");
+	w.writeLine("INSERT INTO " + name("Message") + " (" + name("Text") + ", " + name("From") + ", " + name("To") + ", " + name("Date") + ") VALUES ('hello', 1, 2, '2014-05-18');");
 
 	w.close();
 
 	database->import(f.path());
+}
+
+std::string DatabaseFixture::name(const std::string &orig) {
+	if (type == DatabaseType::POSTGRESQL) {
+		return '"' + changeNameCase_internal(orig) + '"';
+	}
+
+	return changeNameCase_internal(orig);
+}
+
+std::string DatabaseFixture::changeNameCase_internal(const std::string &orig) {
+	if (lowerCaseNames) {
+		return boost::algorithm::to_lower_copy(orig);
+	} else {
+		return orig;
+	}
 }

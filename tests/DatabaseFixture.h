@@ -7,9 +7,11 @@
 
 class DatabaseFixture {
 public:
-	DatabaseFixture(const DatabaseType &type);
+	explicit DatabaseFixture(const DatabaseType type, const bool lowerCaseNames);
 
 	Database &get();
+
+	std::string changeNameCase(const std::string &orig);
 
 	void fillDataA();
 	void fillDataA_filtered();
@@ -17,7 +19,14 @@ public:
 private:
 	void fillDataA_internal(const bool &withoutThirdUser);
 
+	std::string name(const std::string &orig);
+
+	std::string changeNameCase_internal(const std::string &orig);
+
 private:
+	const DatabaseType type;
+	const bool lowerCaseNames;
+
 	Temp temp;
 	Config_Db config;
 	std::unique_ptr<Database> database;
