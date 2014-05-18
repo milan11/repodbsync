@@ -112,8 +112,12 @@ std::set<std::string> Database_PostgreSQL::getTableDependencies(const std::strin
 			if (space != std::string::npos) {
 				std::string::size_type parent = (line->find('(', space + 1));
 				if (parent != std::string::npos) {
-					std::string referencedTableName = line->substr(space + 1, parent - space - 1);
-					result.insert(std::move(referencedTableName));
+					std::string referencedTableName_maybeInQuotes = line->substr(space + 1, parent - space - 1);
+					if ((referencedTableName_maybeInQuotes.size() >= 2) && (referencedTableName_maybeInQuotes.front() == '"') && (referencedTableName_maybeInQuotes.back() == '"')) {
+						result.insert(referencedTableName_maybeInQuotes.substr(1, referencedTableName_maybeInQuotes.size() - 2));
+					} else {
+						result.insert(std::move(referencedTableName_maybeInQuotes));
+					}
 				}
 			}
 		}
