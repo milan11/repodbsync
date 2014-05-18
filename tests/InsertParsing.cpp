@@ -22,3 +22,17 @@ BOOST_AUTO_TEST_CASE(insert_into) {
 		"INSERT INTO table1 (column1, column2, column3) VALUES ('abc', 2, -2)"
 	);
 }
+
+BOOST_AUTO_TEST_CASE(insert_into_quotes) {
+	::check(
+		"INSERT INTO \"table1\" (\"column1\", column2, column3) VALUES ('abc', 2, -2)",
+		"INSERT INTO table1 (column1, column2, column3) VALUES ('abc', 2, -2)"
+	);
+}
+
+BOOST_AUTO_TEST_CASE(insert_into_text_space) {
+	::check(
+		"INSERT INTO table1 (column1, column2, column3) VALUES ('abc def', 2, -2)",
+		"INSERT INTO table1 (column1, column2, column3) VALUES ('abc def', 2, -2)"
+	);
+}
