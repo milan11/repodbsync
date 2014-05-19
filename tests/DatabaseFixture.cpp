@@ -45,16 +45,34 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 
 	SafeWriter w(f.path());
 
+	w.writeLine("CREATE TABLE " + name("UserRole") + " (");
+	w.writeLine(name("Id") + " integer NOT NULL,");
+	w.writeLine(name("Name") + " varchar(64) NOT NULL,");
+	w.writeLine(name("Description") + " varchar(128) NOT NULL");
+	w.writeLine(");");
+
+	w.writeLine("ALTER TABLE " + name("UserRole"));
+	w.writeLine("ADD CONSTRAINT " + name("UserRole_Id") + " PRIMARY KEY (" + name("Id") + ");");
+
+	w.writeLine("ALTER TABLE " + name("UserRole"));
+	w.writeLine("ADD CONSTRAINT " + name("UserRole_Name") + " UNIQUE (" + name("Name") + ");");
+
 	w.writeLine("CREATE TABLE " + name("User") + " (");
 	w.writeLine(name("Id") + " integer NOT NULL,");
-	w.writeLine(name("Name") + " varchar(64) NOT NULL");
+	w.writeLine(name("Name") + " varchar(64) NOT NULL,");
+	w.writeLine(name("Role") + " integer NOT NULL");
 	w.writeLine(");");
 
 	w.writeLine("ALTER TABLE " + name("User"));
-	w.writeLine("ADD CONSTRAINT " + name("Id") + " PRIMARY KEY (" + name("Id") + ");");
+	w.writeLine("ADD CONSTRAINT " + name("User_Id") + " PRIMARY KEY (" + name("Id") + ");");
 
 	w.writeLine("ALTER TABLE " + name("User"));
-	w.writeLine("ADD CONSTRAINT " + name("Name") + " UNIQUE (" + name("Name") + ");");
+	w.writeLine("ADD CONSTRAINT " + name("User_Name") + " UNIQUE (" + name("Name") + ");");
+
+	w.writeLine("CREATE INDEX " + name("Fki_role") + " ON " + name("User") + " (" + name("Role") + ");");
+
+	w.writeLine("ALTER TABLE " + name("User"));
+	w.writeLine("ADD CONSTRAINT " + name("User_Role") + " FOREIGN KEY (" + name("Role") + ") REFERENCES " + name("UserRole") + "(" + name("Id") + ");");
 
 	w.writeLine("CREATE TABLE " + name("Message") + " (");
 	w.writeLine(name("Text") + " varchar(64) NOT NULL,");
@@ -67,16 +85,18 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 	w.writeLine("CREATE INDEX " + name("Fki_to") + " ON " + name("Message") + " (" + name("To") + ");");
 
 	w.writeLine("ALTER TABLE " + name("Message"));
-	w.writeLine("ADD CONSTRAINT " + name("From") + " FOREIGN KEY (" + name("From") + ") REFERENCES " + name("User") + "(" + name("Id") + ");");
+	w.writeLine("ADD CONSTRAINT " + name("Message_From") + " FOREIGN KEY (" + name("From") + ") REFERENCES " + name("User") + "(" + name("Id") + ");");
 
 	w.writeLine("ALTER TABLE " + name("Message"));
-	w.writeLine("ADD CONSTRAINT " + name("To") + " FOREIGN KEY (" + name("To") + ") REFERENCES " + name("User") + "(" + name("Id") + ");");
+	w.writeLine("ADD CONSTRAINT " + name("Message_To") + " FOREIGN KEY (" + name("To") + ") REFERENCES " + name("User") + "(" + name("Id") + ");");
 
-	w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ") VALUES (1, 'First User');");
-	w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ") VALUES (2, 'Second User');");
+	w.writeLine("INSERT INTO " + name("UserRole") + " (" + name("Id") + ", " + name("Name") + ", " + name("Description") + ") VALUES (1, 'Guest', 'Anonymous Users');");
+
+	w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ", " + name("Role") + ") VALUES (1, 'First User', 1);");
+	w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ", " + name("Role") + ") VALUES (2, 'Second User', 1);");
 
 	if (! withoutThirdUser) {
-		w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ") VALUES (3, 'Third User');");
+		w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ", " + name("Role") + ") VALUES (3, 'Third User', 1);");
 	}
 
 	w.writeLine("INSERT INTO " + name("Message") + " (" + name("Text") + ", " + name("From") + ", " + name("To") + ", " + name("Date") + ") VALUES ('hello', 1, 2, '2014-05-18');");

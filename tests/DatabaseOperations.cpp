@@ -75,6 +75,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_tables, F, Fixtures) {
 	std::set<std::string> expectedTables;
 	expectedTables.insert(db->changeNameCase("Message"));
 	expectedTables.insert(db->changeNameCase("User"));
+	expectedTables.insert(db->changeNameCase("UserRole"));
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
@@ -92,11 +93,25 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_tables_does_not_include_versioninfo, F, Fixtur
 	std::set<std::string> expectedTables;
 	expectedTables.insert(db->changeNameCase("Message"));
 	expectedTables.insert(db->changeNameCase("User"));
+	expectedTables.insert(db->changeNameCase("UserRole"));
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(get_table_dependencies, F, Fixtures) {
+BOOST_AUTO_TEST_CASE_TEMPLATE(get_table_dependencies_user, F, Fixtures) {
+	std::unique_ptr<DatabaseFixture> db = F::get();
+
+	db->fillDataA();
+
+	std::set<std::string> dependencies = db->get().getTableDependencies(db->changeNameCase("User"));
+
+	std::set<std::string> expectedDependencies;
+	expectedDependencies.insert(db->changeNameCase("UserRole"));
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(dependencies.begin(), dependencies.end(), expectedDependencies.begin(), expectedDependencies.end());
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(get_table_dependencies_message, F, Fixtures) {
 	std::unique_ptr<DatabaseFixture> db = F::get();
 
 	db->fillDataA();
@@ -114,7 +129,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_table_dependencies_empty, F, Fixtures) {
 
 	db->fillDataA();
 
-	std::set<std::string> dependencies = db->get().getTableDependencies(db->changeNameCase("User"));
+	std::set<std::string> dependencies = db->get().getTableDependencies(db->changeNameCase("UserRole"));
 
 	std::set<std::string> expectedDependencies;
 
@@ -132,6 +147,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(delete_table, F, Fixtures) {
 
 	std::set<std::string> expectedTables;
 	expectedTables.insert(db->changeNameCase("User"));
+	expectedTables.insert(db->changeNameCase("UserRole"));
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
@@ -146,7 +162,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_structure, F, Fixtures) {
 
 		db->fillDataA();
 
-		db->get().exportTable(db->changeNameCase("User"), dump.path());
+		db->get().exportTable(db->changeNameCase("UserRole"), dump.path());
 	}
 
 	TempFile dumpAfterImport = temp.createFile();
@@ -159,11 +175,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_structure, F, Fixtures) {
 		std::set<std::string> tables = db->get().getTables();
 
 		std::set<std::string> expectedTables;
-		expectedTables.insert(db->changeNameCase("User"));
+		expectedTables.insert(db->changeNameCase("UserRole"));
 
 		BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 
-		db->get().exportTable(db->changeNameCase("User"), dumpAfterImport.path());
+		db->get().exportTable(db->changeNameCase("UserRole"), dumpAfterImport.path());
 	}
 
 	TextDiff diff(dump.path(), dumpAfterImport.path());
@@ -181,8 +197,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_data, F, Fixtures) {
 
 		db->fillDataA();
 
-		db->get().exportTable(db->changeNameCase("User"), structureDump.path());
-		db->get().exportData(db->changeNameCase("User"), "", dataDump.path());
+		db->get().exportTable(db->changeNameCase("UserRole"), structureDump.path());
+		db->get().exportData(db->changeNameCase("UserRole"), "", dataDump.path());
 	}
 
 	TempFile dataDumpAfterImport = temp.createFile();
@@ -193,7 +209,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_data, F, Fixtures) {
 		db->get().import(structureDump.path());
 		db->get().import(dataDump.path());
 
-		db->get().exportData(db->changeNameCase("User"), "", dataDumpAfterImport.path());
+		db->get().exportData(db->changeNameCase("UserRole"), "", dataDumpAfterImport.path());
 	}
 
 	TextDiff diff(dataDump.path(), dataDumpAfterImport.path());
@@ -217,6 +233,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_table, F, Fixtures) {
 
 	std::set<std::string> expectedTables;
 	expectedTables.insert(db->changeNameCase("User"));
+	expectedTables.insert(db->changeNameCase("UserRole"));
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
