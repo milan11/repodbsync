@@ -72,10 +72,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_tables, F, Fixtures) {
 
 	std::set<std::string> tables = db->get().getTables();
 
-	std::set<std::string> expectedTables;
-	expectedTables.insert(db->changeNameCase("Message"));
-	expectedTables.insert(db->changeNameCase("User"));
-	expectedTables.insert(db->changeNameCase("UserRole"));
+	std::set<std::string> expectedTables {
+		db->changeNameCase("Message"),
+		db->changeNameCase("User"),
+		db->changeNameCase("UserRole")
+	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
@@ -90,10 +91,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_tables_does_not_include_versioninfo, F, Fixtur
 
 	std::set<std::string> tables = db->get().getTables();
 
-	std::set<std::string> expectedTables;
-	expectedTables.insert(db->changeNameCase("Message"));
-	expectedTables.insert(db->changeNameCase("User"));
-	expectedTables.insert(db->changeNameCase("UserRole"));
+	std::set<std::string> expectedTables {
+		db->changeNameCase("Message"),
+		db->changeNameCase("User"),
+		db->changeNameCase("UserRole")
+	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
@@ -105,8 +107,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_table_dependencies_user, F, Fixtures) {
 
 	std::set<std::string> dependencies = db->get().getTableDependencies(db->changeNameCase("User"));
 
-	std::set<std::string> expectedDependencies;
-	expectedDependencies.insert(db->changeNameCase("UserRole"));
+	std::set<std::string> expectedDependencies {
+		db->changeNameCase("UserRole")
+	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(dependencies.begin(), dependencies.end(), expectedDependencies.begin(), expectedDependencies.end());
 }
@@ -118,8 +121,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_table_dependencies_message, F, Fixtures) {
 
 	std::set<std::string> dependencies = db->get().getTableDependencies(db->changeNameCase("Message"));
 
-	std::set<std::string> expectedDependencies;
-	expectedDependencies.insert(db->changeNameCase("User"));
+	std::set<std::string> expectedDependencies {
+		db->changeNameCase("User")
+	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(dependencies.begin(), dependencies.end(), expectedDependencies.begin(), expectedDependencies.end());
 }
@@ -145,9 +149,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(delete_table, F, Fixtures) {
 
 	std::set<std::string> tables = db->get().getTables();
 
-	std::set<std::string> expectedTables;
-	expectedTables.insert(db->changeNameCase("User"));
-	expectedTables.insert(db->changeNameCase("UserRole"));
+	std::set<std::string> expectedTables {
+		db->changeNameCase("User"),
+		db->changeNameCase("UserRole")
+	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
@@ -174,8 +179,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_structure, F, Fixtures) {
 
 		std::set<std::string> tables = db->get().getTables();
 
-		std::set<std::string> expectedTables;
-		expectedTables.insert(db->changeNameCase("UserRole"));
+		std::set<std::string> expectedTables {
+			db->changeNameCase("UserRole")
+		};
 
 		BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 
@@ -231,9 +237,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_table, F, Fixtures) {
 
 	std::set<std::string> tables = db->get().getTables();
 
-	std::set<std::string> expectedTables;
-	expectedTables.insert(db->changeNameCase("User"));
-	expectedTables.insert(db->changeNameCase("UserRole"));
+	std::set<std::string> expectedTables {
+		db->changeNameCase("User"),
+		db->changeNameCase("UserRole")
+	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
@@ -256,14 +263,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_data_where, F, Fixtures) {
 	{
 		std::unique_ptr<DatabaseFixture> db = F::get();
 
-		thirdUserConditions.insert(db->changeNameCase("Id") + " = 3");
-		thirdUserConditions.insert(db->changeNameCase("Name") + " = 'Third User'");
-		thirdUserConditions.insert(db->changeNameCase("Id") + " = 3 AND " + db->changeNameCase("Name") + " = 'Third User'");
-		thirdUserConditions.insert(db->changeNameCase("Id") + " = 3 OR " + db->changeNameCase("Name") + " = 'Non Existing User'");
-		thirdUserConditions.insert(db->changeNameCase("Id") + " = -3 OR " + db->changeNameCase("Name") + " = 'Third User'");
-		thirdUserConditions.insert("NOT (" + db->changeNameCase("Id") + " <> 3)");
-		thirdUserConditions.insert("NOT (" + db->changeNameCase("Name") + " <> 'Third User')");
-		thirdUserConditions.insert("NOT (" + db->changeNameCase("Id") + " <> 3 OR " + db->changeNameCase("Name") + " <> 'Third User')");
+		thirdUserConditions = std::set<std::string> {
+			db->changeNameCase("Id") + " = 3",
+			db->changeNameCase("Name") + " = 'Third User'",
+			db->changeNameCase("Id") + " = 3 AND " + db->changeNameCase("Name") + " = 'Third User'",
+			db->changeNameCase("Id") + " = 3 OR " + db->changeNameCase("Name") + " = 'Non Existing User'",
+			db->changeNameCase("Id") + " = -3 OR " + db->changeNameCase("Name") + " = 'Third User'",
+			"NOT (" + db->changeNameCase("Id") + " <> 3)",
+			"NOT (" + db->changeNameCase("Name") + " <> 'Third User')",
+			"NOT (" + db->changeNameCase("Id") + " <> 3 OR " + db->changeNameCase("Name") + " <> 'Third User')"
+		};
 	}
 
 	for (const std::string &condition : thirdUserConditions) {
