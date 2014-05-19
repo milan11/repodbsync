@@ -2,7 +2,7 @@
 synchronization of development databases with SQL scripts in a shared repository
 
 ### VERSION
-0.1
+0.2
 
 ### DESCRIPTION
 Helps to maintain local development database instances and one main database storage in a source code repository (in form of database creation scripts).
@@ -12,10 +12,10 @@ Each run does these 2 steps:
 Applying of these 2 steps (maybe in more iterations) makes the local database synchronized with the repository.
 
 ### BUILD
-git clone git@github.com:milan11/repodbsync.git
-cd repodbsync
-cmake
-make
+* git clone git@github.com:milan11/repodbsync.git
+* cd repodbsync
+* cmake
+* make
 
 possible cmake arguments:
 * debug build: -DCMAKE_BUILD_TYPE=Debug
@@ -26,7 +26,7 @@ Just run it in some source code repository directory where you want the sql scri
 The executable does not process any arguments.
 
 ### SUPPORTED ENVIRONMENT
-* database support: MySQL only
+* database support: MySQL, PostgreSQL
 * OS support: Linux tested only (but should be multiplatform)
 
 ### SOURCE CODE
@@ -35,7 +35,9 @@ The executable does not process any arguments.
 * latest source code available at: https://github.com/milan11/repodbsync
 
 ### DEPENDENCIES
-* mysql, mysqldump (must be in path)
+* database tools (must be in path):
+	* mysql, mysqldump
+	* psql, pgdump
 * boost (linking with: system, filesystem)
 
 ### SOURCE CODE DEPENDENCIES
