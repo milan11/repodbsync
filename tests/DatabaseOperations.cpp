@@ -1,5 +1,6 @@
-#include <boost/mpl/list.hpp>
 #include <boost/test/unit_test.hpp>
+
+#include <boost/mpl/list.hpp>
 
 #include "../DatabaseTypes.h"
 #include "../TextDiff.h"
@@ -20,7 +21,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(initially_not_versioned, F, Fixtures) {
 	std::unique_ptr<DatabaseFixture> db = F::get();
 
 	BOOST_CHECK_EQUAL(db->get().isVersioned(), false);
-	// BOOST_CHECK_THROW(db->get().getVersion(), std::runtime_error); // TODO:
+	BOOST_CHECK_THROW(db->get().getVersion(), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(make_versioned, F, Fixtures) {
@@ -51,7 +52,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(make_not_versioned, F, Fixtures) {
 	db->get().makeNotVersioned();
 
 	BOOST_CHECK_EQUAL(db->get().isVersioned(), false);
-	// BOOST_CHECK_THROW(db->get().getVersion(), std::runtime_error); // TODO:
+	BOOST_CHECK_THROW(db->get().getVersion(), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(get_tables_empty, F, Fixtures) {
