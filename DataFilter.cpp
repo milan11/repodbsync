@@ -76,7 +76,7 @@ void ConditionEvaluator::operator()(const sql::condition::Comparison &c) {
 		::printLiteral(value1, value1str);
 		std::ostringstream value2str;
 		::printLiteral(value2, value2str);
-		THROW(boost::format("Data filter comparison - incompatible types: %1%, %2%") % value1str % value2str);
+		THROW(boost::format("Data filter comparison - incompatible types: %1%, %2%") % value1str.str() % value2str.str());
 	}
 
 	switch (value1.which()) {
