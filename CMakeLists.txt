@@ -18,7 +18,9 @@ if(TESTMODE)
   aux_source_directory(tests SRC_LIST)
 endif()
 
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+file(GLOB_RECURSE INC_LIST "*.h")
+
+add_executable(${PROJECT_NAME} ${SRC_LIST} ${INC_LIST})
 cotire(${PROJECT_NAME})
 
 find_package(Boost COMPONENTS system filesystem REQUIRED)
