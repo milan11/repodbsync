@@ -5,6 +5,7 @@
 #include <boost/property_tree/info_parser.hpp>
 #include "../DatabaseUtils.h"
 #include "../SafeWriter.h"
+#include "../exceptions.h"
 
 DatabaseFixture::DatabaseFixture(const DatabaseType type, const bool lowerCaseNames)
 	:
@@ -16,6 +17,11 @@ DatabaseFixture::DatabaseFixture(const DatabaseType type, const bool lowerCaseNa
 	boost::property_tree::ptree pt;
 	boost::property_tree::read_info("testdbconfig_" + databaseTypes.toString(type), pt);
 	config.read(pt);
+
+	if (! config.isFilledFor(type)) {
+		THROW(boost::format("Database config not filled in for %1%") % DatabaseTypes().toString(type));
+	}
+
 	database = databaseTypes.createDb(type, config, temp);
 
 	{
@@ -107,7 +113,7 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 }
 
 std::string DatabaseFixture::name(const std::string &orig) {
-	if (type == DatabaseType::POSTGRESQL) {
+	if ((type == DatabaseType::POSTGRESQL) || (type == DatabaseType::SQLITE)) {
 		return '"' + changeNameCase_internal(orig) + '"';
 	}
 

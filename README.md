@@ -26,7 +26,7 @@ Just run it in some source code repository directory where you want the sql scri
 The executable does not process any arguments.
 
 ### SUPPORTED ENVIRONMENT
-* database support: MySQL, PostgreSQL
+* database support: MySQL, PostgreSQL, SQLite
 * OS support: Linux tested only (but should be multiplatform)
 
 ### SOURCE CODE
@@ -36,8 +36,9 @@ The executable does not process any arguments.
 
 ### DEPENDENCIES
 * database tools (must be in path):
-	* mysql, mysqldump
-	* psql, pgdump
+        * for MySQL: mysql, mysqldump
+        * for PostgreSQL: psql, pgdump
+        * for SQLite: sqlite3
 * boost (linking with: system, filesystem)
 
 ### SOURCE CODE DEPENDENCIES
@@ -123,3 +124,4 @@ Please note that these descriptions refer to the state when everyone already has
 * provide downloadable binaries
 * real-world examples (e.g. handling a standard Drupal database)
 * stored procedures
+* add cyclic references to tests (to test if all tables can be deleted)

@@ -3,11 +3,13 @@
 #include <boost/algorithm/string/join.hpp>
 #include "Database_MySQL.h"
 #include "Database_PostgreSQL.h"
+#include "Database_SQLite.h"
 #include "exceptions.h"
 
 DatabaseTypes::DatabaseTypes() {
 	map.insert(MapType::value_type(DatabaseType::MYSQL, "mysql"));
 	map.insert(MapType::value_type(DatabaseType::POSTGRESQL, "postgresql"));
+	map.insert(MapType::value_type(DatabaseType::SQLITE, "sqlite"));
 }
 
 std::string DatabaseTypes::toString(const DatabaseType type) const {
@@ -34,6 +36,8 @@ std::unique_ptr<Database> DatabaseTypes::createDb(const DatabaseType type, const
 			return std::unique_ptr<Database>(new Database_MySQL(config, temp));
 		case DatabaseType::POSTGRESQL:
 			return std::unique_ptr<Database>(new Database_PostgreSQL(config, temp));
+		case DatabaseType::SQLITE:
+			return std::unique_ptr<Database>(new Database_SQLite(config, temp));
 		default:
 			THROW("Unsupported database type (createDb)");
 	}

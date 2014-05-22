@@ -2,14 +2,16 @@
 
 #include <string>
 #include <boost/bimap.hpp>
-#include "Config_Db.h"
 #include "Database.h"
 #include "Temp.h"
 
 enum class DatabaseType {
 	MYSQL,
 	POSTGRESQL,
+	SQLITE,
 };
+
+class Config_Db;
 
 class DatabaseTypes {
 public:

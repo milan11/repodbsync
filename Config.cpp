@@ -17,8 +17,8 @@ bool Config::fileExists() const {
 }
 
 bool Config::isFilled() const {
-	if (dbLocal.database.empty()) return false;
-	if (dbTemp.database.empty()) return false;
+	if (! dbLocal.isFilledFor(dbType)) return false;
+	if (! dbTemp.isFilledFor(dbType)) return false;
 
 	return true;
 }
