@@ -53,19 +53,16 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 
 	w.writeLine("CREATE TABLE " + name("UserRole") + " (");
 	w.writeLine(name("Id") + " integer PRIMARY KEY NOT NULL,");
-	w.writeLine(name("Name") + " varchar(64) UNIQUE NOT NULL,");
+	w.writeLine(name("Name") + " varchar(64) NOT NULL,");
 	w.writeLine(name("Description") + " varchar(128) NOT NULL");
 	w.writeLine(");");
 
 	w.writeLine("CREATE TABLE " + name("User") + " (");
 	w.writeLine(name("Id") + " integer PRIMARY KEY NOT NULL,");
-	w.writeLine(name("Name") + " varchar(64) NOT NULL,");
+	w.writeLine(name("Name") + " varchar(64) UNIQUE NOT NULL,");
 	w.writeLine(name("Role") + " integer NOT NULL,");
 	w.writeLine("FOREIGN KEY (" + name("Role") + ") REFERENCES " + name("UserRole") + "(" + name("Id") + ")");
 	w.writeLine(");");
-
-	w.writeLine("ALTER TABLE " + name("User"));
-	w.writeLine("ADD CONSTRAINT " + name("User_Name") + " UNIQUE (" + name("Name") + ");");
 
 	w.writeLine("CREATE TABLE " + name("Message") + " (");
 	w.writeLine(name("Text") + " varchar(64) NOT NULL,");
