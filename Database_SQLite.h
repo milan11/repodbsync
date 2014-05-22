@@ -27,6 +27,8 @@ private:
 	void import_internal(const boost::filesystem::path &file);
 	void deleteTable_internal(const std::string &tableName);
 
+	std::vector<std::string> getColumns(const std::string &tableName);
+
 private:
 	const Config_Db &config;
 	Temp &temp;

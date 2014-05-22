@@ -52,6 +52,27 @@ void Database_SQLite::exportData(const std::string &tableName, const std::string
 		condition = sql_parsing::parseCondition(ignoreWhere);
 	}
 
+	std::string columnsPart;
+	{
+		std::ostringstream ss;
+		ss << "(";
+		std::vector<std::string> columns = getColumns(tableName);
+		bool first = true;
+		for (const std::string &column : columns) {
+			if (first) {
+				first = false;
+			} else {
+				ss << ',';
+			}
+			ss << '"';
+			ss << column;
+			ss << '"';
+		}
+		ss << ")";
+
+		columnsPart = ss.str();
+	}
+
 	SafeWriter writer(file);
 	LinesReader reader(tableDump.path());
 	while (boost::optional<std::string> line = reader.readLine()) {
@@ -59,13 +80,24 @@ void Database_SQLite::exportData(const std::string &tableName, const std::string
 			continue;
 		}
 
+		std::string::size_type quoteBeforePos = line->find('\"');
+		if (quoteBeforePos == std::string::npos) {
+			THROW(boost::format("Invalid line format (cannot find quotes before table name): %1%") % *line);
+		}
+		std::string::size_type quoteAfterPos = line->find('\"', quoteBeforePos + 1);
+		if (quoteAfterPos == std::string::npos) {
+			THROW(boost::format("Invalid line format (cannot find quotes after table name): %1%") % *line);
+		}
+
+		std::string lineWithColumns = line->substr(0, quoteAfterPos + 1) + " " + columnsPart + line->substr(quoteAfterPos + 1);
+
 		if (! ignoreWhere.empty()) {
-			if (::isInsertAndMatchesWhere(*line, condition)) {
+			if (::isInsertAndMatchesWhere(lineWithColumns, condition)) {
 				continue;
 			}
 		}
 
-		writer.writeLine(*line);
+		writer.writeLine(lineWithColumns);
 	}
 	writer.close();
 }
@@ -101,11 +133,11 @@ std::set<std::string> Database_SQLite::getTableDependencies(const std::string &t
 	while (boost::optional<std::string> line = reader.readLine()) {
 		std::string::size_type referencesBegin = line->find("REFERENCES");
 		if (referencesBegin != std::string::npos) {
-			std::string::size_type firstApos = (line->find('`', referencesBegin));
-			if (firstApos != std::string::npos) {
-				std::string::size_type secondApos = (line->find('`', firstApos + 1));
-				if (secondApos != std::string::npos) {
-					std::string referencedTableName = line->substr(firstApos + 1, secondApos - firstApos - 1);
+			std::string::size_type firstQuote = (line->find('"', referencesBegin));
+			if (firstQuote != std::string::npos) {
+				std::string::size_type secondQuote = (line->find('"', firstQuote + 1));
+				if (secondQuote != std::string::npos) {
+					std::string referencedTableName = line->substr(firstQuote + 1, secondQuote - firstQuote - 1);
 					result.insert(std::move(referencedTableName));
 				}
 			}
@@ -218,4 +250,34 @@ void Database_SQLite::deleteTable_internal(const std::string &tableName) {
 		.appendArgument("DROP TABLE " + tableName + ";") // TODO: disable foreign keys
 		.execute()
 	;
+}
+
+std::vector<std::string> Database_SQLite::getColumns(const std::string &tableName) {
+	TempFile columns = temp.createFile();
+
+	Command command("sqlite3");
+
+	command
+		.appendArgument(config.file)
+		.appendArgument("pragma table_info(" + tableName + ");")
+		.appendRedirectTo(columns.path())
+		.execute()
+	;
+
+	std::vector<std::string> result;
+
+	LinesReader reader(columns.path());
+	boost::optional<std::string> line;
+	while ((line = reader.readLine())) {
+		std::vector<std::string> fields;
+		boost::split(fields, *line, boost::is_any_of("|"));
+
+		if (fields.size() == 6) {
+			result.push_back(fields[1]);
+		} else {
+			THROW(boost::format("Invalid line format: %1%") % line);
+		}
+	}
+
+	return result;
 }
