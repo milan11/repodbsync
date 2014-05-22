@@ -5,7 +5,11 @@ void Config_Db::read(const boost::property_tree::ptree &pt) {
 	user = pt.get<std::string>("user");
 	password = pt.get<std::string>("password");
 	database = pt.get<std::string>("database");
-	file = pt.get<std::string>("file");
+	try {
+		file = pt.get<std::string>("file");
+	} catch (const boost::property_tree::ptree_bad_path &) {
+		file = "";
+	}
 }
 
 boost::property_tree::ptree Config_Db::write() const {
