@@ -12,7 +12,7 @@ public:
 	virtual void exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) = 0;
 	virtual void printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) = 0;
 	virtual void import(const boost::filesystem::path &file) = 0;
-	virtual void deleteTable(const std::string &tableName) = 0;
+	virtual void clear() = 0;
 	virtual std::set<std::string> getTableDependencies(const std::string &tableName) = 0;
 	virtual bool isVersioned() = 0;
 	virtual void makeVersioned() = 0;

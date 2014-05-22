@@ -84,8 +84,18 @@ void Database_PostgreSQL::import(const boost::filesystem::path &file) {
 	import_internal(file);
 }
 
-void Database_PostgreSQL::deleteTable(const std::string &tableName) {
-	deleteTable_internal(tableName);
+void Database_PostgreSQL::clear() {
+	for (const std::string &tableName : getTables_internal()) {
+		Command command("psql");
+
+		appendConnectionParamsAndVars_psql(command);
+
+		command
+			.appendArgument("--quiet")
+			.appendArgument("-c")
+			.appendArgument("DROP TABLE IF EXISTS " + quoteName(tableName) + " CASCADE;")
+			.execute();
+	}
 }
 
 std::set<std::string> Database_PostgreSQL::getTableDependencies(const std::string &tableName) {
@@ -251,7 +261,7 @@ void Database_PostgreSQL::deleteTable_internal(const std::string &tableName) {
 	command
 		.appendArgument("--quiet")
 		.appendArgument("-c")
-		.appendArgument("ALTER TABLE " + quoteName(tableName) + " DISABLE trigger ALL; DROP TABLE " + quoteName(tableName) + ";")
+		.appendArgument("DROP TABLE " + quoteName(tableName) + ";")
 		.execute();
 }
 

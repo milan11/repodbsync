@@ -112,8 +112,10 @@ void Database_SQLite::import(const boost::filesystem::path &file) {
 	import_internal(file);
 }
 
-void Database_SQLite::deleteTable(const std::string &tableName) {
-	deleteTable_internal(tableName);
+void Database_SQLite::clear() {
+	for (const std::string &tableName : getTables_internal()) {
+		deleteTable_internal(tableName);
+	}
 }
 
 std::set<std::string> Database_SQLite::getTableDependencies(const std::string &tableName) {
@@ -247,7 +249,7 @@ void Database_SQLite::deleteTable_internal(const std::string &tableName) {
 
 	command
 		.appendArgument(config.file)
-		.appendArgument("DROP TABLE " + tableName + ";") // TODO: disable foreign keys
+		.appendArgument("DROP TABLE " + tableName + ";")
 		.execute()
 	;
 }

@@ -7,7 +7,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include "DatabaseTypes.h"
-#include "DatabaseUtils.h"
 #include "LinesReader.h"
 #include "Question.h"
 #include "SafeWriter.h"
@@ -55,8 +54,7 @@ void main_inner() {
 	std::unique_ptr<Database> dbTemp = databaseTypes.createDb(config.getDbType(), config.getDbTemp(), temp);
 
 	try {
-		DatabaseUtils u(*dbTemp);
-		u.clear();
+		dbTemp->clear();
 	} HANDLE_RETHROW("Unable to clear the temporary database.");
 
 	try {

@@ -124,4 +124,3 @@ Please note that these descriptions refer to the state when everyone already has
 * provide downloadable binaries
 * real-world examples (e.g. handling a standard Drupal database)
 * stored procedures
-* add cyclic references to tests (to test if all tables can be deleted)

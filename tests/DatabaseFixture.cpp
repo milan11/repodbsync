@@ -3,7 +3,6 @@
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/info_parser.hpp>
-#include "../DatabaseUtils.h"
 #include "../SafeWriter.h"
 #include "../exceptions.h"
 
@@ -23,11 +22,7 @@ DatabaseFixture::DatabaseFixture(const DatabaseType type, const bool lowerCaseNa
 	}
 
 	database = databaseTypes.createDb(type, config, temp);
-
-	{
-		DatabaseUtils u(*database);
-		u.clear();
-	}
+	database->clear();
 }
 
 Database &DatabaseFixture::get() {
@@ -83,6 +78,38 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 	}
 
 	w.writeLine("INSERT INTO " + name("Message") + " (" + name("Text") + ", " + name("From") + ", " + name("To") + ", " + name("Date") + ") VALUES ('hello', 1, 2, '2014-05-18');");
+
+	w.writeLine("CREATE TABLE " + name("CyclicA") + " (");
+	w.writeLine(name("Id") + " integer PRIMARY KEY NOT NULL");
+	w.writeLine(");");
+
+	w.writeLine("CREATE TABLE " + name("CyclicB") + " (");
+	w.writeLine(name("Id") + " integer PRIMARY KEY NOT NULL");
+	w.writeLine(");");
+
+	if (type == DatabaseType::SQLITE) {
+		w.writeLine("ALTER TABLE " + name("CyclicA") + " ADD COLUMN " + name("refAtoB") + " INTEGER REFERENCES " + name("CyclicB") + "(" + name("refBtoA") + ");");
+		w.writeLine("ALTER TABLE " + name("CyclicB") + " ADD COLUMN " + name("refBtoA") + " INTEGER REFERENCES " + name("CyclicA") + "(" + name("refAtoB") + ");");
+	} else {
+		w.writeLine("ALTER TABLE " + name("CyclicA") + " ADD COLUMN " + name("refAtoB") + " INTEGER;");
+		w.writeLine("ALTER TABLE " + name("CyclicB") + " ADD COLUMN " + name("refBtoA") + " INTEGER;");
+
+		w.writeLine("ALTER TABLE " + name("CyclicA"));
+		w.writeLine("ADD CONSTRAINT " + name("Unique_refAtoB") + " UNIQUE (" + name("refAtoB") + ");");
+
+		w.writeLine("ALTER TABLE " + name("CyclicB"));
+		w.writeLine("ADD CONSTRAINT " + name("Unique_refBtoA") + " UNIQUE (" + name("refBtoA") + ");");
+
+		w.writeLine("CREATE INDEX " + name("Fki_refAtoB") + " ON " + name("CyclicA") + " (" + name("refAtoB") + ");");
+
+		w.writeLine("ALTER TABLE " + name("CyclicA"));
+		w.writeLine("ADD CONSTRAINT " + name("Fk_refAtoB") + " FOREIGN KEY (" + name("refAtoB") + ") REFERENCES " + name("CyclicB") + "(" + name("refBtoA") + ");");
+
+		w.writeLine("CREATE INDEX " + name("Fki_refBtoA") + " ON " + name("CyclicB") + " (" + name("refBtoA") + ");");
+
+		w.writeLine("ALTER TABLE " + name("CyclicB"));
+		w.writeLine("ADD CONSTRAINT " + name("Fk_refBtoA") + " FOREIGN KEY (" + name("refBtoA") + ") REFERENCES " + name("CyclicA") + "(" + name("refAtoB") + ");");
+	}
 
 	w.close();
 

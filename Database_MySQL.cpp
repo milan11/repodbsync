@@ -79,8 +79,17 @@ void Database_MySQL::import(const boost::filesystem::path &file) {
 	import_internal(file);
 }
 
-void Database_MySQL::deleteTable(const std::string &tableName) {
-	deleteTable_internal(tableName);
+void Database_MySQL::clear() {
+	for (const std::string &tableName : getTables_internal()) {
+		Command command("mysql");
+
+		appendConnectionParams(command);
+
+		command
+			.appendArgument("-e")
+			.appendArgument("SET foreign_key_checks = 0; DROP TABLE " + tableName + "; SET foreign_key_checks = 1;")
+			.execute();
+	}
 }
 
 std::set<std::string> Database_MySQL::getTableDependencies(const std::string &tableName) {
@@ -229,7 +238,7 @@ void Database_MySQL::deleteTable_internal(const std::string &tableName) {
 
 	command
 		.appendArgument("-e")
-		.appendArgument("SET foreign_key_checks = 0; DROP TABLE " + tableName + "; SET foreign_key_checks = 1;")
+		.appendArgument("DROP TABLE " + tableName + ";")
 		.execute();
 }
 

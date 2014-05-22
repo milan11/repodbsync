@@ -14,7 +14,7 @@ public:
 	virtual void exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) override;
 	virtual void printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) override;
 	virtual void import(const boost::filesystem::path &file) override;
-	virtual void deleteTable(const std::string &tableName) override;
+	virtual void clear() override;
 	virtual std::set<std::string> getTableDependencies(const std::string &tableName) override;
 	virtual bool isVersioned() override;
 	virtual void makeVersioned() override;

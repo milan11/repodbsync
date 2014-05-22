@@ -75,7 +75,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_tables, F, Fixtures) {
 	std::set<std::string> expectedTables {
 		db->changeNameCase("Message"),
 		db->changeNameCase("User"),
-		db->changeNameCase("UserRole")
+		db->changeNameCase("UserRole"),
+		db->changeNameCase("CyclicA"),
+		db->changeNameCase("CyclicB")
 	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
@@ -94,7 +96,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_tables_does_not_include_versioninfo, F, Fixtur
 	std::set<std::string> expectedTables {
 		db->changeNameCase("Message"),
 		db->changeNameCase("User"),
-		db->changeNameCase("UserRole")
+		db->changeNameCase("UserRole"),
+		db->changeNameCase("CyclicA"),
+		db->changeNameCase("CyclicB")
 	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
@@ -138,23 +142,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_table_dependencies_empty, F, Fixtures) {
 	std::set<std::string> expectedDependencies;
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(dependencies.begin(), dependencies.end(), expectedDependencies.begin(), expectedDependencies.end());
-}
-
-BOOST_AUTO_TEST_CASE_TEMPLATE(delete_table, F, Fixtures) {
-	std::unique_ptr<DatabaseFixture> db = F::get();
-
-	db->fillDataA();
-
-	db->get().deleteTable(db->changeNameCase("Message"));
-
-	std::set<std::string> tables = db->get().getTables();
-
-	std::set<std::string> expectedTables {
-		db->changeNameCase("User"),
-		db->changeNameCase("UserRole")
-	};
-
-	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_structure, F, Fixtures) {
@@ -239,7 +226,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_table, F, Fixtures) {
 
 	std::set<std::string> expectedTables {
 		db->changeNameCase("User"),
-		db->changeNameCase("UserRole")
+		db->changeNameCase("UserRole"),
+		db->changeNameCase("CyclicA"),
+		db->changeNameCase("CyclicB")
 	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
@@ -288,4 +277,30 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_data_where, F, Fixtures) {
 
 		BOOST_REQUIRE_MESSAGE(diff.areEqual(), "Failed with condition: " + condition);
 	}
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(clear_database, F, Fixtures) {
+	std::unique_ptr<DatabaseFixture> db = F::get();
+
+	db->fillDataA();
+
+	db->get().clear();
+
+	std::set<std::string> tables = db->get().getTables();
+
+	std::set<std::string> expectedTables;
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(clear_database_is_not_versioned, F, Fixtures) {
+	std::unique_ptr<DatabaseFixture> db = F::get();
+
+	db->get().makeVersioned();
+	db->get().setVersion(1);
+
+	db->get().clear();
+
+	BOOST_CHECK_EQUAL(db->get().isVersioned(), false);
+	BOOST_CHECK_THROW(db->get().getVersion(), std::runtime_error);
 }
