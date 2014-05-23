@@ -36,9 +36,9 @@ The executable does not process any arguments.
 
 ### DEPENDENCIES
 * database tools (must be in path):
-        * for MySQL: mysql, mysqldump
-        * for PostgreSQL: psql, pgdump
-        * for SQLite: sqlite3
+	* for MySQL: mysql, mysqldump
+	* for PostgreSQL: psql, pgdump
+	* for SQLite: sqlite3
 * boost (linking with: system, filesystem)
 
 ### SOURCE CODE DEPENDENCIES
