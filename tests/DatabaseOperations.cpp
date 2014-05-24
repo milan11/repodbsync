@@ -1,9 +1,10 @@
 #include <boost/test/unit_test.hpp>
 
+#include <boost/filesystem.hpp>
 #include <boost/mpl/list.hpp>
-
 #include "../DatabaseTypes.h"
 #include "../TextDiff.h"
+#include "../exceptions.h"
 #include "DatabaseFixture.h"
 
 template <const DatabaseType type, const bool lowerCaseNames = false>
@@ -15,6 +16,32 @@ typedef boost::mpl::list<Fixture<DatabaseType::MYSQL>, Fixture<DatabaseType::POS
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(open, F, Fixtures) {
 	std::unique_ptr<DatabaseFixture> db = F::get();
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(output_for_review, F, Fixtures) {
+	std::unique_ptr<DatabaseFixture> db = F::get();
+
+	const std::string databaseTypeName = DatabaseTypes().toString(db->getType());
+
+	boost::filesystem::path reviewDirectory = "review_" + databaseTypeName;
+	if (boost::filesystem::exists(reviewDirectory)) {
+		if ((! boost::filesystem::is_directory(reviewDirectory))) {
+			THROW("Review file exists but is not a directory.");
+		}
+	} else {
+		try {
+			boost::filesystem::create_directory(reviewDirectory);
+		} HANDLE_RETHROW(boost::format("Unable to create directory: %1%") % reviewDirectory.string());
+	}
+
+	db->fillDataA();
+
+	std::set<std::string> tables = db->get().getTables();
+
+	for (const std::string &table : tables) {
+		db->get().exportTable(table, reviewDirectory / ( table + "_table"));
+		db->get().exportData(table, "", reviewDirectory / ( table + "_data"));
+	}
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(initially_not_versioned, F, Fixtures) {

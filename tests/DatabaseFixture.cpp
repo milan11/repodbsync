@@ -25,6 +25,10 @@ DatabaseFixture::DatabaseFixture(const DatabaseType type, const bool lowerCaseNa
 	database->clear();
 }
 
+DatabaseType DatabaseFixture::getType() const {
+	return type;
+}
+
 Database &DatabaseFixture::get() {
 	return *database.get();
 }
