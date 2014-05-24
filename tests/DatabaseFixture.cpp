@@ -29,6 +29,10 @@ DatabaseType DatabaseFixture::getType() const {
 	return type;
 }
 
+bool DatabaseFixture::isLowerCaseNames() const {
+	return lowerCaseNames;
+}
+
 Database &DatabaseFixture::get() {
 	return *database.get();
 }

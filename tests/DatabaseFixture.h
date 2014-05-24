@@ -10,6 +10,7 @@ public:
 	explicit DatabaseFixture(const DatabaseType type, const bool lowerCaseNames);
 
 	DatabaseType getType() const;
+	bool isLowerCaseNames() const;
 	Database &get();
 
 	std::string changeNameCase(const std::string &orig);

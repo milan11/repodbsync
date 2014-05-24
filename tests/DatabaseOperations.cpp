@@ -23,10 +23,18 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(output_for_review, F, Fixtures) {
 
 	const std::string databaseTypeName = DatabaseTypes().toString(db->getType());
 
-	boost::filesystem::path reviewDirectory = "review_" + databaseTypeName;
+	boost::filesystem::path reviewDirectory = "review_" + databaseTypeName + (db->isLowerCaseNames() ? "_lc" : "");
 	if (boost::filesystem::exists(reviewDirectory)) {
 		if ((! boost::filesystem::is_directory(reviewDirectory))) {
 			THROW("Review file exists but is not a directory.");
+		}
+
+		for (boost::filesystem::directory_iterator it_end, it(reviewDirectory); it != it_end; ++it) {
+			if (it->path().extension() == ".sql") {
+				boost::filesystem::remove(*it);
+			} else {
+				THROW(boost::format("Unknown file in review directory: %1%") % it->path().string());
+			}
 		}
 	} else {
 		try {
@@ -39,8 +47,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(output_for_review, F, Fixtures) {
 	std::set<std::string> tables = db->get().getTables();
 
 	for (const std::string &table : tables) {
-		db->get().exportTable(table, reviewDirectory / ( table + "_table"));
-		db->get().exportData(table, "", reviewDirectory / ( table + "_data"));
+		db->get().exportTable(table, reviewDirectory / ( table + "_table.sql"));
+		db->get().exportData(table, "", reviewDirectory / ( table + "_data.sql"));
 	}
 }
 
