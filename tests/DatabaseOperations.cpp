@@ -18,6 +18,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(open, F, Fixtures) {
 	std::unique_ptr<DatabaseFixture> db = F::get();
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(fill_data, F, Fixtures) {
+	std::unique_ptr<DatabaseFixture> db = F::get();
+
+	db->fillDataA();
+}
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(output_for_review, F, Fixtures) {
 	std::unique_ptr<DatabaseFixture> db = F::get();
 

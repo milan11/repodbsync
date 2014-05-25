@@ -95,29 +95,22 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 	w.writeLine(name("Id") + " integer PRIMARY KEY NOT NULL");
 	w.writeLine(");");
 
-	if (type == DatabaseType::SQLITE) {
-		w.writeLine("ALTER TABLE " + name("CyclicA") + " ADD COLUMN " + name("refAtoB") + " INTEGER REFERENCES " + name("CyclicB") + "(" + name("refBtoA") + ");");
-		w.writeLine("ALTER TABLE " + name("CyclicB") + " ADD COLUMN " + name("refBtoA") + " INTEGER REFERENCES " + name("CyclicA") + "(" + name("refAtoB") + ");");
+	if (type == DatabaseType::MYSQL) {
+		// if the foreign key was specified directly in ADD COLUMN, the foreign key constraint has been missing in the CREATE TABLE dump
+		w.writeLine("ALTER TABLE " + name("CyclicA") + " ADD COLUMN " + name("refAtoB") + " INTEGER NULL;");
+		w.writeLine("ALTER TABLE " + name("CyclicB") + " ADD COLUMN " + name("refBtoA") + " INTEGER NOT NULL;");
+
+		w.writeLine("ALTER TABLE " + name("CyclicA") + " ADD CONSTRAINT " + name("Fk_refAtoB") + " FOREIGN KEY (" + name("refAtoB") + ") REFERENCES " + name("CyclicB") + "(" + name("Id") + ");");
+		w.writeLine("ALTER TABLE " + name("CyclicB") + " ADD CONSTRAINT " + name("Fk_refBtoA") + " FOREIGN KEY (" + name("refBtoA") + ") REFERENCES " + name("CyclicA") + "(" + name("Id") + ");");
 	} else {
-		w.writeLine("ALTER TABLE " + name("CyclicA") + " ADD COLUMN " + name("refAtoB") + " INTEGER;");
-		w.writeLine("ALTER TABLE " + name("CyclicB") + " ADD COLUMN " + name("refBtoA") + " INTEGER;");
-
-		w.writeLine("ALTER TABLE " + name("CyclicA"));
-		w.writeLine("ADD CONSTRAINT " + name("Unique_refAtoB") + " UNIQUE (" + name("refAtoB") + ");");
-
-		w.writeLine("ALTER TABLE " + name("CyclicB"));
-		w.writeLine("ADD CONSTRAINT " + name("Unique_refBtoA") + " UNIQUE (" + name("refBtoA") + ");");
-
-		w.writeLine("CREATE INDEX " + name("Fki_refAtoB") + " ON " + name("CyclicA") + " (" + name("refAtoB") + ");");
-
-		w.writeLine("ALTER TABLE " + name("CyclicA"));
-		w.writeLine("ADD CONSTRAINT " + name("Fk_refAtoB") + " FOREIGN KEY (" + name("refAtoB") + ") REFERENCES " + name("CyclicB") + "(" + name("refBtoA") + ");");
-
-		w.writeLine("CREATE INDEX " + name("Fki_refBtoA") + " ON " + name("CyclicB") + " (" + name("refBtoA") + ");");
-
-		w.writeLine("ALTER TABLE " + name("CyclicB"));
-		w.writeLine("ADD CONSTRAINT " + name("Fk_refBtoA") + " FOREIGN KEY (" + name("refBtoA") + ") REFERENCES " + name("CyclicA") + "(" + name("refAtoB") + ");");
+		w.writeLine("ALTER TABLE " + name("CyclicA") + " ADD COLUMN " + name("refAtoB") + " INTEGER NULL REFERENCES " + name("CyclicB") + "(" + name("Id") + ");");
+		w.writeLine("ALTER TABLE " + name("CyclicB") + " ADD COLUMN " + name("refBtoA") + " INTEGER NOT NULL DEFAULT 0 REFERENCES " + name("CyclicA") + "(" + name("Id") + ");");
 	}
+
+	w.writeLine("INSERT INTO " + name("CyclicA")  + " (" + name("Id") + ") VALUES (2);");
+	w.writeLine("INSERT INTO " + name("CyclicB")  + " (" + name("Id") + ", " + name("refBtoA") + ") VALUES (3, 2);");
+
+	w.writeLine("UPDATE " + name("CyclicA")  + "SET " + name("refAtoB") + " = 3;");
 
 	w.close();
 
