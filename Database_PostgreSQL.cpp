@@ -319,10 +319,7 @@ std::set<std::string> Database_PostgreSQL::getRoutines_internal() {
 
 			result.insert(signature.str());
 		} else {
-			//bool canBeNoRelationsFoundMessage = (fields.size() == 1);
-			//if (! canBeNoRelationsFoundMessage) {
-				THROW(boost::format("Invalid line format: %1%") % *line);
-			//}
+			THROW(boost::format("Invalid line format: %1%") % *line);
 		}
 	}
 

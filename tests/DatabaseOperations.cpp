@@ -31,11 +31,21 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(clear_database, F, Fixtures) {
 
 	db->get().clear();
 
-	std::set<std::string> tables = db->get().getTables();
+	{
+		std::set<std::string> tables = db->get().getTables();
 
-	std::set<std::string> expectedTables;
+		std::set<std::string> expectedTables;
 
-	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+		BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+	}
+
+	{
+		std::set<std::string> routines = db->get().getRoutines();
+
+		std::set<std::string> expectedRoutines;
+
+		BOOST_CHECK_EQUAL_COLLECTIONS(routines.begin(), routines.end(), expectedRoutines.begin(), expectedRoutines.end());
+	}
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(clear_database_is_not_versioned, F, Fixtures) {
@@ -153,6 +163,42 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_tables, F, Fixtures) {
 	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(get_routines_empty, F, Fixtures) {
+	std::unique_ptr<DatabaseFixture> db = F::get();
+
+	std::set<std::string> routines = db->get().getRoutines();
+
+	std::set<std::string> expectedRoutines;
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(routines.begin(), routines.end(), expectedRoutines.begin(), expectedRoutines.end());
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(get_routines, F, Fixtures) {
+	std::unique_ptr<DatabaseFixture> db = F::get();
+
+	db->fillDataA();
+
+	std::set<std::string> routines = db->get().getRoutines();
+
+	std::set<std::string> expectedRoutines;
+
+	if (db->getType() == DatabaseType::MYSQL) {
+		expectedRoutines = {
+			db->changeNameCase("procedure_user_count"),
+			db->changeNameCase("function_user_count")
+		};
+	}
+
+	if (db->getType() == DatabaseType::POSTGRESQL) {
+		expectedRoutines = {
+			db->changeNameCase("user_count_p(integer)"),
+			db->changeNameCase("user_count_f()")
+		};
+	}
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(routines.begin(), routines.end(), expectedRoutines.begin(), expectedRoutines.end());
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(get_tables_does_not_include_versioninfo, F, Fixtures) {
@@ -281,6 +327,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_data, F, Fixtures) {
 	BOOST_CHECK_EQUAL(diff.areEqual(), true);
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_routines, F, Fixtures) {
+	// TODO
+}
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_table, F, Fixtures) {
 	Temp temp("temp_test");
 
@@ -304,6 +354,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_table, F, Fixtures) {
 	};
 
 	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_routine, F, Fixtures) {
+	// TODO
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(export_data_where, F, Fixtures) {
