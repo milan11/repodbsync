@@ -22,6 +22,8 @@ const std::string ignoredTablesFileName = "ignore_tables.txt";
 const std::string ignoredTablesLocalFileName = "ignore_tables_local.txt";
 const std::string ignoredDataFileName = "ignore_data.txt";
 const std::string ignoredDataLocalFileName = "ignore_data_local.txt";
+const std::string ignoredRoutinesFileName = "ignore_routines.txt";
+const std::string ignoredRoutinesLocalFileName = "ignore_routines_local.txt";
 const std::string gitignoreFileName = ".gitignore";
 
 boost::filesystem::path rootDir = boost::filesystem::current_path();
@@ -49,6 +51,7 @@ void main_inner() {
 
 	std::set<std::string> ignoredTables = loadIgnoredTables();
 	std::vector<IgnoredData> ignoredData = loadIgnoredData();
+	std::set<std::string> ignoredRoutines = loadIgnoredRoutines();
 
 	std::unique_ptr<Database> dbLocal = databaseTypes.createDb(config.getDbType(), config.getDbLocal(), temp);
 	std::unique_ptr<Database> dbTemp = databaseTypes.createDb(config.getDbType(), config.getDbTemp(), temp);
@@ -67,14 +70,19 @@ void main_inner() {
 	applyMissingScripts(*dbLocal, scripts);
 
 	SortedTables sortedTables = sortTables(*dbLocal, *dbTemp, ignoredTables);
+	DifferentTables differentTables = handleTables_both(sortedTables.both, *dbLocal, *dbTemp, outs, ignoredData, temp);
 
-	Different different = handleBoth(sortedTables.both, *dbLocal, *dbTemp, outs, ignoredData, temp);
+	SortedRoutines sortedRoutines = sortRoutines(*dbLocal, *dbTemp, ignoredRoutines);
+	std::vector<std::string> differentRoutines = handleRoutines_both(sortedRoutines.both, *dbLocal, *dbTemp, outs, temp);
 
 	uint32_t nextScriptTargetVersion = repositoryVersion + 1;
-	handleRepositoryOnly(sortedTables.repositoryOnly, nextScriptTargetVersion, *dbLocal, outs);
-	handleLocalOnly(sortedTables.localOnly, nextScriptTargetVersion, *dbLocal, outs, ignoredData, temp);
+	handleTables_repositoryOnly(sortedTables.repositoryOnly, nextScriptTargetVersion, *dbLocal, outs);
+	handleTables_localOnly(sortedTables.localOnly, nextScriptTargetVersion, *dbLocal, outs, ignoredData, temp);
 
-	printDifferences(sortedTables, different);
+	handleRoutines_repositoryOnly(sortedRoutines.repositoryOnly, nextScriptTargetVersion, *dbLocal, outs);
+	handleRoutines_localOnly(sortedRoutines.localOnly, nextScriptTargetVersion, *dbLocal, outs);
+
+	printDifferences(sortedTables, differentTables, sortedRoutines, differentRoutines);
 }
 
 Config createConfig(const DatabaseTypes &databaseTypes) {
@@ -115,6 +123,14 @@ void ensureIgnoreFilesExist() {
 		}
 		if (! boost::filesystem::exists(rootDir / ignoredDataLocalFileName)) {
 			SafeWriter w(rootDir / ignoredDataLocalFileName);
+			w.close();
+		}
+		if (! boost::filesystem::exists(rootDir / ignoredRoutinesFileName)) {
+			SafeWriter w(rootDir / ignoredRoutinesFileName);
+			w.close();
+		}
+		if (! boost::filesystem::exists(rootDir / ignoredRoutinesLocalFileName)) {
+			SafeWriter w(rootDir / ignoredRoutinesLocalFileName);
 			w.close();
 		}
 		if (! boost::filesystem::exists(rootDir / gitignoreFileName)) {
@@ -161,6 +177,24 @@ std::vector<IgnoredData> loadIgnoredData() {
 	}
 
 	return ignoredData;
+}
+
+std::set<std::string> loadIgnoredRoutines() {
+	std::set<std::string> ignoredRoutines;
+	if (boost::filesystem::exists(rootDir / ignoredRoutinesFileName)) {
+		LinesReader reader(rootDir / ignoredRoutinesFileName);
+		while (boost::optional<std::string> line = reader.readLine()) {
+			ignoredRoutines.insert(std::move(*line));
+		}
+	}
+	if (boost::filesystem::exists(rootDir / ignoredRoutinesLocalFileName)) {
+		LinesReader reader(rootDir / ignoredRoutinesLocalFileName);
+		while (boost::optional<std::string> line = reader.readLine()) {
+			ignoredRoutines.insert(std::move(*line));
+		}
+	}
+
+	return ignoredRoutines;
 }
 
 IgnoredData parseIgnoredDataLine(const std::string &line) {
@@ -324,8 +358,8 @@ std::vector<std::string> sortByDependencies(const std::vector<std::string> &tabl
 	return result;
 }
 
-Different handleBoth(const std::vector<std::string> &tables, Database &dbLocal, Database &dbTemp, Outs &outs, std::vector<IgnoredData> &ignoredData, Temp &temp) {
-	Different different;
+DifferentTables handleTables_both(const std::vector<std::string> &tables, Database &dbLocal, Database &dbTemp, Outs &outs, std::vector<IgnoredData> &ignoredData, Temp &temp) {
+	DifferentTables different;
 
 	for (const std::string &table : tables) {
 		{
@@ -387,7 +421,7 @@ boost::optional<std::string> getIgnoredDataWhere(const std::string &tableName, c
 	return where.str();
 }
 
-void handleRepositoryOnly(const std::vector<std::string> &tables, uint32_t &nextScriptTargetVersion, Database &dbLocal, Outs &outs) {
+void handleTables_repositoryOnly(const std::vector<std::string> &tables, uint32_t &nextScriptTargetVersion, Database &dbLocal, Outs &outs) {
 	for (const std::string &table : tables) {
 		const std::string scriptFileName = ScriptProperties(nextScriptTargetVersion, "delete_" + table).toFileName();
 		dbLocal.printDeleteTable(table, outs.createFile(scriptFileName));
@@ -395,7 +429,7 @@ void handleRepositoryOnly(const std::vector<std::string> &tables, uint32_t &next
 	}
 }
 
-void handleLocalOnly(const std::vector<std::string> &tables, uint32_t &nextScriptTargetVersion, Database &dbLocal, Outs &outs, std::vector<IgnoredData> &ignoredData, Temp &temp) {
+void handleTables_localOnly(const std::vector<std::string> &tables, uint32_t &nextScriptTargetVersion, Database &dbLocal, Outs &outs, std::vector<IgnoredData> &ignoredData, Temp &temp) {
 	for (const std::string &table : tables) {
 		const std::string scriptFileName = ScriptProperties(nextScriptTargetVersion, "create_" + table).toFileName();
 		dbLocal.exportTable(table, outs.createFile(scriptFileName));
@@ -415,8 +449,80 @@ void handleLocalOnly(const std::vector<std::string> &tables, uint32_t &nextScrip
 	}
 }
 
-void printDifferences(const SortedTables &sortedTables, const Different &different) {
-	const bool differences = (! sortedTables.repositoryOnly.empty()) || (! sortedTables.localOnly.empty()) || (! different.differentTable.empty() || (! different.differentData.empty()));
+SortedRoutines sortRoutines(Database &dbLocal, Database &dbTemp, std::set<std::string> &ignoredRoutines) {
+	SortedRoutines sortedRoutines;
+
+	std::set<std::string> routinesInLocal = dbLocal.getRoutines();
+	std::set<std::string> routinesInRepository = dbTemp.getRoutines();
+
+	for (const std::string &routine : routinesInRepository) {
+		if (ignoredRoutines.find(routine) != ignoredRoutines.end()) {
+			continue;
+		}
+
+		if (routinesInLocal.find(routine) == routinesInLocal.end()) {
+			sortedRoutines.repositoryOnly.push_back(routine);
+		}
+	}
+
+	for (const std::string &routine : routinesInLocal) {
+		if (ignoredRoutines.find(routine) != ignoredRoutines.end()) {
+			continue;
+		}
+
+		if (routinesInRepository.find(routine) != routinesInRepository.end()) {
+			sortedRoutines.both.push_back(routine);
+		} else {
+			sortedRoutines.localOnly.push_back(routine);
+		}
+	}
+
+	return sortedRoutines;
+}
+
+std::vector<std::string> handleRoutines_both(const std::vector<std::string> &routines, Database &dbLocal, Database &dbTemp, Outs &outs, Temp &temp) {
+	std::vector<std::string> result;
+
+	for (const std::string &routine : routines) {
+		{
+			TempFile localDump = temp.createFile();
+			dbLocal.exportRoutine(routine, localDump.path());
+			TempFile repositoryDump = temp.createFile();
+			dbTemp.exportRoutine(routine, repositoryDump.path());
+
+			TextDiff diff(localDump.path(), repositoryDump.path());
+			if (! diff.areEqual()) {
+				localDump.moveTo(outs.createFile(routine + "_local_routine.sql"));
+				repositoryDump.moveTo(outs.createFile(routine + "_repository_routine.sql"));
+				result.push_back(routine);
+			}
+		}
+	}
+
+	return result;
+}
+
+void handleRoutines_repositoryOnly(const std::vector<std::string> &routines, uint32_t &nextScriptTargetVersion, Database &dbLocal, Outs &outs) {
+	for (const std::string &routine : routines) {
+		const std::string scriptFileName = ScriptProperties(nextScriptTargetVersion, "routine_delete_" + routine).toFileName();
+		dbLocal.printDeleteRoutine(routine, outs.createFile(scriptFileName));
+		++nextScriptTargetVersion;
+	}
+}
+
+void handleRoutines_localOnly(const std::vector<std::string> &routines, uint32_t &nextScriptTargetVersion, Database &dbLocal, Outs &outs) {
+	for (const std::string &routine: routines) {
+		const std::string scriptFileName = ScriptProperties(nextScriptTargetVersion, "routine_create_" + routine).toFileName();
+		dbLocal.exportRoutine(routine, outs.createFile(scriptFileName));
+		++nextScriptTargetVersion;
+	}
+}
+
+void printDifferences(const SortedTables &sortedTables, const DifferentTables &differentTables, const SortedRoutines &sortedRoutines, const std::vector<std::string> &differentRoutines) {
+	const bool differences =
+		(! sortedTables.repositoryOnly.empty()) || (! sortedTables.localOnly.empty()) || (! differentTables.differentTable.empty() || (! differentTables.differentData.empty()))
+		|| (! sortedRoutines.repositoryOnly.empty()) || (! sortedRoutines.localOnly.empty()) || (! differentRoutines.empty())
+	;
 
 	if (differences) {
 		std::cout << "There are some differences between the repository and your local database. There are 4 ways to resolve a difference:" << std::endl;
@@ -424,6 +530,7 @@ void printDifferences(const SortedTables &sortedTables, const Different &differe
 		std::cout << "  2. Make changes in your local database to reflect the state of the repository database. Maybe this is a rare case, because you should already have all relevant changes from the repository applied to your local database because you have the same version of the database." << std::endl;
 		std::cout << "  3. Ignore the table. Add its name on a separate line to the file ignore_tables.txt (shared in the repository) or ignore_tables_local.txt (for you only)." << std::endl;
 		std::cout << "  4. Ignore the table data. Add its name on a separate line to the file ignore_data.txt (shared in the repository) or ignore_data_local.txt (for you only)." << std::endl;
+		std::cout << "  5. Ignore routine. Add its name on a separate line to the file ignore_routines.txt (shared in the repository) or ignore_routines_local.txt (for you only)." << std::endl;
 	}
 
 	if (! sortedTables.repositoryOnly.empty()) {
@@ -442,19 +549,43 @@ void printDifferences(const SortedTables &sortedTables, const Different &differe
 		}
 	}
 
-	if (! different.differentTable.empty()) {
+	if (! differentTables.differentTable.empty()) {
 		std::cout << "The following tables are different." << std::endl;
 		std::cout << "  HINT: The dumps of the two states of each table are in outs, named <table>_local.sql and <table>_repository.sql." << std::endl;
-		for (const std::string &table : different.differentTable) {
+		for (const std::string &table : differentTables.differentTable) {
 			std::cout << "  " << table << std::endl;
 		}
 	}
 
-	if (! different.differentData.empty()) {
+	if (! differentTables.differentData.empty()) {
 		std::cout << "The following tables have different data:" << std::endl;
 		std::cout << "  HINT: The dumps of the two states of each table are in outs, named <table>_local.csv and <table>_repository.csv." << std::endl;
-		for (const std::string &table : different.differentData) {
+		for (const std::string &table : differentTables.differentData) {
 			std::cout << "  " << table << std::endl;
+		}
+	}
+
+	if (! sortedRoutines.repositoryOnly.empty()) {
+		std::cout << "The following routines are in the repository, but are not in the local database." << std::endl;
+		std::cout << "  HINT: If you want to create new scripts in the repository deleting these routines, the files named named <num>_routine_delete_<routine>.sql in the outs directory can help you." << std::endl;
+		for (const std::string &routine : sortedRoutines.repositoryOnly) {
+			std::cout << "  " << routine << std::endl;
+		}
+	}
+
+	if (! sortedRoutines.localOnly.empty()) {
+		std::cout << "The following routines are in the local database, but are missing in the repository." << std::endl;
+		std::cout << "  HINT: If you want to create new scripts in the repository creating these routines, the files named <num>_routine_create_<routine>.sql in the outs directory can help you." << std::endl;
+		for (const std::string &routine : sortedRoutines.localOnly) {
+			std::cout << "  " << routine << std::endl;
+		}
+	}
+
+	if (! differentRoutines.empty()) {
+		std::cout << "The following routines are different." << std::endl;
+		std::cout << "  HINT: The dumps of the two states of each table are in outs, named <routine>_local_routine.sql and <routine>_repository_routine.sql." << std::endl;
+		for (const std::string &routine : differentRoutines) {
+			std::cout << "  " << routine << std::endl;
 		}
 	}
 

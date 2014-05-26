@@ -10,7 +10,13 @@ struct SortedTables {
 	std::vector<std::string> both;
 };
 
-struct Different {
+struct SortedRoutines {
+	std::vector<std::string> repositoryOnly;
+	std::vector<std::string> localOnly;
+	std::vector<std::string> both;
+};
+
+struct DifferentTables {
 	std::set<std::string> differentTable;
 	std::set<std::string> differentData;
 };
