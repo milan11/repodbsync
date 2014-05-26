@@ -53,8 +53,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(output_for_review, F, Fixtures) {
 	std::set<std::string> tables = db->get().getTables();
 
 	for (const std::string &table : tables) {
-		db->get().exportTable(table, reviewDirectory / ( table + "_table.sql"));
-		db->get().exportData(table, "", reviewDirectory / ( table + "_data.sql"));
+		db->get().exportTable(table, reviewDirectory / (table + "_table.sql"));
+		db->get().exportData(table, "", reviewDirectory / (table + "_data.sql"));
+	}
+
+	std::set<std::string> routines = db->get().getRoutines();
+	for (const std::string &routine : routines) {
+		db->get().exportRoutine(routine, reviewDirectory / (routine + "_routine.sql"));
 	}
 }
 
