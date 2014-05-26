@@ -24,6 +24,32 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(fill_data, F, Fixtures) {
 	db->fillDataA();
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(clear_database, F, Fixtures) {
+	std::unique_ptr<DatabaseFixture> db = F::get();
+
+	db->fillDataA();
+
+	db->get().clear();
+
+	std::set<std::string> tables = db->get().getTables();
+
+	std::set<std::string> expectedTables;
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(clear_database_is_not_versioned, F, Fixtures) {
+	std::unique_ptr<DatabaseFixture> db = F::get();
+
+	db->get().makeVersioned();
+	db->get().setVersion(1);
+
+	db->get().clear();
+
+	BOOST_CHECK_EQUAL(db->get().isVersioned(), false);
+	BOOST_CHECK_THROW(db->get().getVersion(), std::runtime_error);
+}
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(output_for_review, F, Fixtures) {
 	std::unique_ptr<DatabaseFixture> db = F::get();
 
@@ -323,30 +349,4 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_data_where, F, Fixtures) {
 
 		BOOST_REQUIRE_MESSAGE(diff.areEqual(), "Failed with condition: " + condition);
 	}
-}
-
-BOOST_AUTO_TEST_CASE_TEMPLATE(clear_database, F, Fixtures) {
-	std::unique_ptr<DatabaseFixture> db = F::get();
-
-	db->fillDataA();
-
-	db->get().clear();
-
-	std::set<std::string> tables = db->get().getTables();
-
-	std::set<std::string> expectedTables;
-
-	BOOST_CHECK_EQUAL_COLLECTIONS(tables.begin(), tables.end(), expectedTables.begin(), expectedTables.end());
-}
-
-BOOST_AUTO_TEST_CASE_TEMPLATE(clear_database_is_not_versioned, F, Fixtures) {
-	std::unique_ptr<DatabaseFixture> db = F::get();
-
-	db->get().makeVersioned();
-	db->get().setVersion(1);
-
-	db->get().clear();
-
-	BOOST_CHECK_EQUAL(db->get().isVersioned(), false);
-	BOOST_CHECK_THROW(db->get().getVersion(), std::runtime_error);
 }
