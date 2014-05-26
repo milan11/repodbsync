@@ -8,8 +8,10 @@
 class Database {
 public:
 	virtual std::set<std::string> getTables() = 0;
+	virtual std::set<std::string> getRoutines() = 0;
 	virtual void exportTable(const std::string &tableName, const boost::filesystem::path &file) = 0;
 	virtual void exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) = 0;
+	virtual void exportRoutine(const std::string &routineName, const boost::filesystem::path &file) = 0;
 	virtual void printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) = 0;
 	virtual void import(const boost::filesystem::path &file) = 0;
 	virtual void clear() = 0;

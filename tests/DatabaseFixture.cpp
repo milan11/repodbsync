@@ -112,6 +112,12 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 
 	w.writeLine("UPDATE " + name("CyclicA")  + "SET " + name("refAtoB") + " = 3;");
 
+	if (type == DatabaseType::MYSQL) {
+		w.writeLine("delimiter //");
+		w.writeLine("CREATE PROCEDURE user_count (OUT c INT) BEGIN SELECT COUNT(*) INTO c FROM User; END;//");
+		w.writeLine("CREATE FUNCTION user_count() RETURNS INT READS SQL DATA BEGIN DECLARE c INT DEFAULT 0; SELECT COUNT(*) INTO c FROM User; RETURN c; END;//");
+	}
+
 	w.close();
 
 	database->import(f.path());

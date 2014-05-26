@@ -9,10 +9,8 @@
 #include "util.h"
 
 const std::string Database_MySQL::versionTableName = "VersionInfo";
-
-// mysqldump --host localhost -uroot -p.. --compact  --skip-extended-insert --order-by-primary --no-create-info --where "te=..." m_local abc
-// mysqldump -h... -u... -p... --no-data --no-create-info --routines > MySQLStoredProcedures.sql &
-// --skip-extended-insert
+const std::string Database_MySQL::routinePrefix_procedure = "procedure_";
+const std::string Database_MySQL::routinePrefix_function = "function_";
 
 Database_MySQL::Database_MySQL(const Config_Db &config, Temp &temp)
 	:
@@ -25,6 +23,10 @@ std::set<std::string> Database_MySQL::getTables() {
 	std::set<std::string> tables = getTables_internal();
 	tables.erase(versionTableName);
 	return tables;
+}
+
+std::set<std::string> Database_MySQL::getRoutines() {
+	return getRoutines_internal();
 }
 
 void Database_MySQL::exportTable(const std::string &tableName, const boost::filesystem::path &file) {
@@ -69,6 +71,27 @@ void Database_MySQL::exportData(const std::string &tableName, const std::string 
 	;
 }
 
+void Database_MySQL::exportRoutine(const std::string &routineName, const boost::filesystem::path &file) {
+	Command command("mysql");
+
+	appendConnectionParams(command);
+	command.appendArgument("-e");
+
+	if (routineName.find(routinePrefix_procedure) == 0) {
+		command.appendArgument("SHOW CREATE PROCEDURE " + routineName.substr(routinePrefix_procedure.size()) + ";");
+	}
+	else if (routineName.find(routinePrefix_function) == 0) {
+		command.appendArgument("SHOW CREATE FUNCTION " + routineName.substr(routinePrefix_function.size()) + ";");
+	}
+	else {
+		THROW(boost::format("Invalid prefix in routine name: %1%") % routineName);
+	}
+
+	command.appendRedirectTo(file);
+
+	command.execute();
+}
+
 void Database_MySQL::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {
 	SafeWriter writer(file);
 	writer.writeLine("DROP TABLE " + tableName + ";");
@@ -89,6 +112,10 @@ void Database_MySQL::clear() {
 			.appendArgument("-e")
 			.appendArgument("SET foreign_key_checks = 0; DROP TABLE " + tableName + "; SET foreign_key_checks = 1;")
 			.execute();
+	}
+
+	for (const std::string &routineName : getRoutines_internal()) {
+		deleteRoutine_internal(routineName);
 	}
 }
 
@@ -220,6 +247,52 @@ std::set<std::string> Database_MySQL::getTables_internal() {
 	return result;
 }
 
+std::set<std::string> Database_MySQL::getRoutines_internal() {
+	TempFile routines = temp.createFile();
+
+	Command command("mysql");
+
+	appendConnectionParams(command);
+	command.appendArgument("-e");
+
+	command.appendArgument("SHOW PROCEDURE STATUS; SHOW FUNCTION STATUS;");
+
+	command
+		.appendRedirectTo(routines.path())
+		.execute()
+	;
+
+	std::set<std::string> result;
+	LinesReader reader(routines.path());
+	boost::optional<std::string> line;
+	while ((line = reader.readLine())) {
+		std::vector<std::string> fields;
+		boost::split(fields, *line, boost::is_any_of("\t"));
+
+		if (fields.size() >= 3) {
+			if (fields[0] == config.database) {
+				std::string name;
+
+				if (fields[2] == "PROCEDURE") {
+					name += routinePrefix_procedure;
+				}
+				else if (fields[2] == "FUNCTION") {
+					name += routinePrefix_function;
+				}
+				else {
+					continue;
+				}
+
+				name += fields[1];
+
+				result.insert(std::move(name));
+			}
+		}
+	}
+
+	return result;
+}
+
 void Database_MySQL::import_internal(const boost::filesystem::path &file) {
 	Command command("mysql");
 
@@ -240,6 +313,25 @@ void Database_MySQL::deleteTable_internal(const std::string &tableName) {
 		.appendArgument("-e")
 		.appendArgument("DROP TABLE " + tableName + ";")
 		.execute();
+}
+
+void Database_MySQL::deleteRoutine_internal(const std::string &routineName) {
+	Command command("mysql");
+
+	appendConnectionParams(command);
+	command.appendArgument("-e");
+
+	if (routineName.find(routinePrefix_procedure) == 0) {
+		command.appendArgument("DROP PROCEDURE " + routineName.substr(routinePrefix_procedure.size()) + ";");
+	}
+	else if (routineName.find(routinePrefix_function) == 0) {
+		command.appendArgument("DROP FUNCTION " + routineName.substr(routinePrefix_function.size()) + ";");
+	}
+	else {
+		THROW(boost::format("Invalid prefix in routine name: %1%") % routineName);
+	}
+
+	command.execute();
 }
 
 void Database_MySQL::appendConnectionParams(Command &command) {

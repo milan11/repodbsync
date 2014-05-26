@@ -10,8 +10,10 @@ public:
 	Database_SQLite(const Config_Db &config, Temp &temp);
 
 	virtual std::set<std::string> getTables() override;
+	virtual std::set<std::string> getRoutines() override;
 	virtual void exportTable(const std::string &tableName, const boost::filesystem::path &file) override;
 	virtual void exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) override;
+	virtual void exportRoutine(const std::string &routineName, const boost::filesystem::path &file) override;
 	virtual void printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) override;
 	virtual void import(const boost::filesystem::path &file) override;
 	virtual void clear() override;

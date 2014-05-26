@@ -24,6 +24,10 @@ std::set<std::string> Database_SQLite::getTables() {
 	return tables;
 }
 
+std::set<std::string> Database_SQLite::getRoutines() {
+	return std::set<std::string>();
+}
+
 void Database_SQLite::exportTable(const std::string &tableName, const boost::filesystem::path &file) {
 	Command command("sqlite3");
 
@@ -100,6 +104,10 @@ void Database_SQLite::exportData(const std::string &tableName, const std::string
 		writer.writeLine(lineWithColumns);
 	}
 	writer.close();
+}
+
+void Database_SQLite::exportRoutine(const std::string &routineName, const boost::filesystem::path &file) {
+	THROW("Invalid call: SQLite does not support routines / stored procedures");
 }
 
 void Database_SQLite::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {

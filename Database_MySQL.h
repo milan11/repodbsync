@@ -10,8 +10,10 @@ public:
 	Database_MySQL(const Config_Db &config, Temp &temp);
 
 	virtual std::set<std::string> getTables() override;
+	virtual std::set<std::string> getRoutines() override;
 	virtual void exportTable(const std::string &tableName, const boost::filesystem::path &file) override;
 	virtual void exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) override;
+	virtual void exportRoutine(const std::string &routineName, const boost::filesystem::path &file) override;
 	virtual void printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) override;
 	virtual void import(const boost::filesystem::path &file) override;
 	virtual void clear() override;
@@ -24,8 +26,10 @@ public:
 
 private:
 	std::set<std::string> getTables_internal();
+	std::set<std::string> getRoutines_internal();
 	void import_internal(const boost::filesystem::path &file);
 	void deleteTable_internal(const std::string &tableName);
+	void deleteRoutine_internal(const std::string &routineName);
 
 	void appendConnectionParams(Command &command);
 
@@ -34,5 +38,7 @@ private:
 	Temp &temp;
 
 	static const std::string versionTableName;
+	static const std::string routinePrefix_procedure;
+	static const std::string routinePrefix_function;
 
 };

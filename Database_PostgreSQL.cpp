@@ -25,6 +25,10 @@ std::set<std::string> Database_PostgreSQL::getTables() {
 	return tables;
 }
 
+std::set<std::string> Database_PostgreSQL::getRoutines() {
+	return getRoutines_internal();
+}
+
 void Database_PostgreSQL::exportTable(const std::string &tableName, const boost::filesystem::path &file) {
 	Command command("pg_dump");
 
@@ -74,6 +78,10 @@ void Database_PostgreSQL::exportData(const std::string &tableName, const std::st
 	writer.close();
 }
 
+void Database_PostgreSQL::exportRoutine(const std::string &routineName, const boost::filesystem::path &file) {
+	// TODO
+}
+
 void Database_PostgreSQL::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {
 	SafeWriter writer(file);
 	writer.writeLine("DROP TABLE " + quoteName(tableName) + ";");
@@ -95,6 +103,10 @@ void Database_PostgreSQL::clear() {
 			.appendArgument("-c")
 			.appendArgument("DROP TABLE IF EXISTS " + quoteName(tableName) + " CASCADE;")
 			.execute();
+	}
+
+	for (const std::string &routineName : getRoutines_internal()) {
+		deleteRoutine_internal(routineName);
 	}
 }
 
@@ -240,6 +252,11 @@ std::set<std::string> Database_PostgreSQL::getTables_internal() {
 	return result;
 }
 
+std::set<std::string> Database_PostgreSQL::getRoutines_internal() {
+	// TODO
+	return std::set<std::string>();
+}
+
 void Database_PostgreSQL::import_internal(const boost::filesystem::path &file) {
 	Command command("psql");
 
@@ -263,6 +280,10 @@ void Database_PostgreSQL::deleteTable_internal(const std::string &tableName) {
 		.appendArgument("-c")
 		.appendArgument("DROP TABLE " + quoteName(tableName) + ";")
 		.execute();
+}
+
+void Database_PostgreSQL::deleteRoutine_internal(const std::string &routineName) {
+	// TODO
 }
 
 void Database_PostgreSQL::appendConnectionParamsAndVars_psql(Command &command) {
