@@ -357,7 +357,45 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_table, F, Fixtures) {
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_routine, F, Fixtures) {
-	// TODO
+	Temp temp("temp_test");
+
+	std::unique_ptr<DatabaseFixture> db = F::get();
+
+	db->fillDataA();
+
+	TempFile deleteRoutine = temp.createFile();
+	if (db->getType() == DatabaseType::MYSQL) {
+		db->get().printDeleteRoutine("procedure_user_count", deleteRoutine.path());
+	}
+
+	if (db->getType() == DatabaseType::POSTGRESQL) {
+		db->get().printDeleteRoutine("user_count_p(integer)", deleteRoutine.path());
+	}
+
+	if (db->getType() == DatabaseType::SQLITE) {
+		return;
+	}
+
+	db->get().import(deleteRoutine.path());
+
+
+	std::set<std::string> routines = db->get().getRoutines();
+
+	std::set<std::string> expectedRoutines;
+
+	if (db->getType() == DatabaseType::MYSQL) {
+		expectedRoutines = {
+			db->changeNameCase("function_user_count")
+		};
+	}
+
+	if (db->getType() == DatabaseType::POSTGRESQL) {
+		expectedRoutines = {
+			db->changeNameCase("user_count_f()")
+		};
+	}
+
+	BOOST_CHECK_EQUAL_COLLECTIONS(routines.begin(), routines.end(), expectedRoutines.begin(), expectedRoutines.end());
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(export_data_where, F, Fixtures) {
