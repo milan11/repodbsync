@@ -79,7 +79,16 @@ void Database_PostgreSQL::exportData(const std::string &tableName, const std::st
 }
 
 void Database_PostgreSQL::exportRoutine(const std::string &routineName, const boost::filesystem::path &file) {
-	// TODO
+	Command command("psql");
+
+	appendConnectionParamsAndVars_psql(command);
+
+	command
+		.appendArgument("--quiet")
+		.appendArgument("-c")
+		.appendArgument("SELECT pg_get_functiondef(\'" + routineName + "\'::regprocedure);")
+		.appendRedirectTo(file)
+		.execute();
 }
 
 void Database_PostgreSQL::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {
@@ -253,8 +262,71 @@ std::set<std::string> Database_PostgreSQL::getTables_internal() {
 }
 
 std::set<std::string> Database_PostgreSQL::getRoutines_internal() {
-	// TODO
-	return std::set<std::string>();
+	TempFile routines = temp.createFile();
+
+	Command command("psql");
+
+	appendConnectionParamsAndVars_psql(command);
+	appendFormattingParams_psql(command);
+
+	command
+		.appendArgument("--quiet")
+		.appendArgument("-c")
+		.appendArgument("\\df")
+		.appendRedirectTo(routines.path())
+		.execute()
+	;
+
+	std::set<std::string> result;
+	LinesReader reader(routines.path());
+	boost::optional<std::string> line;
+	while ((line = reader.readLine())) {
+		std::vector<std::string> fields;
+		boost::split(fields, *line, boost::is_any_of("|"));
+
+		if (fields.size() == 5) {
+			std::ostringstream signature;
+			signature << fields[1];
+			signature << '(';
+
+			if (! fields[3].empty()) {
+				std::vector<std::string> arguments;
+				boost::split(arguments, fields[3], boost::is_any_of(","));
+
+				bool first = true;
+				for (const std::string &argument : arguments) {
+					std::vector<std::string> argumentFields;
+					boost::split(argumentFields, argument, boost::is_any_of(" "));
+					if (argumentFields.empty()) {
+						THROW(boost::format("No argument fields: %1%") % fields[3]);
+					}
+
+					if (argumentFields[0] == "OUT") {
+						continue;
+					}
+
+					if (first) {
+						first = false;
+					} else {
+						signature << ',';
+					}
+
+					signature << argumentFields.back();
+				}
+			}
+
+			signature << ')';
+
+			result.insert(signature.str());
+		} else {
+			//bool canBeNoRelationsFoundMessage = (fields.size() == 1);
+			//if (! canBeNoRelationsFoundMessage) {
+				THROW(boost::format("Invalid line format: %1%") % *line);
+			//}
+		}
+	}
+
+	return result;
 }
 
 void Database_PostgreSQL::import_internal(const boost::filesystem::path &file) {
@@ -283,7 +355,15 @@ void Database_PostgreSQL::deleteTable_internal(const std::string &tableName) {
 }
 
 void Database_PostgreSQL::deleteRoutine_internal(const std::string &routineName) {
-	// TODO
+	Command command("psql");
+
+	appendConnectionParamsAndVars_psql(command);
+
+	command
+		.appendArgument("--quiet")
+		.appendArgument("-c")
+		.appendArgument("DROP FUNCTION " + routineName + ";")
+		.execute();
 }
 
 void Database_PostgreSQL::appendConnectionParamsAndVars_psql(Command &command) {
