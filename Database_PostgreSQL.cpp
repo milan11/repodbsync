@@ -97,6 +97,12 @@ void Database_PostgreSQL::printDeleteTable(const std::string &tableName, const b
 	writer.close();
 }
 
+void Database_PostgreSQL::printDeleteRoutine(const std::string &routineName, const boost::filesystem::path &file) {
+	SafeWriter writer(file);
+	writer.writeLine("DROP FUNCTION " + routineName + ";");
+	writer.close();
+}
+
 void Database_PostgreSQL::import(const boost::filesystem::path &file) {
 	import_internal(file);
 }

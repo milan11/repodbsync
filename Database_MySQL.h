@@ -15,6 +15,7 @@ public:
 	virtual void exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) override;
 	virtual void exportRoutine(const std::string &routineName, const boost::filesystem::path &file) override;
 	virtual void printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) override;
+	virtual void printDeleteRoutine(const std::string &routineName, const boost::filesystem::path &file) override;
 	virtual void import(const boost::filesystem::path &file) override;
 	virtual void clear() override;
 	virtual std::set<std::string> getTableDependencies(const std::string &tableName) override;

@@ -107,6 +107,9 @@ void Database_SQLite::exportData(const std::string &tableName, const std::string
 }
 
 void Database_SQLite::exportRoutine(const std::string &routineName, const boost::filesystem::path &file) {
+	(void)routineName;
+	(void)file;
+
 	THROW("Invalid call: SQLite does not support routines / stored procedures");
 }
 
@@ -114,6 +117,13 @@ void Database_SQLite::printDeleteTable(const std::string &tableName, const boost
 	SafeWriter writer(file);
 	writer.writeLine("DROP TABLE " + tableName + ";");
 	writer.close();
+}
+
+void Database_SQLite::printDeleteRoutine(const std::string &routineName, const boost::filesystem::path &file) {
+	(void)routineName;
+	(void)file;
+
+	THROW("Invalid call: SQLite does not support routines / stored procedures");
 }
 
 void Database_SQLite::import(const boost::filesystem::path &file) {

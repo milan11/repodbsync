@@ -98,6 +98,22 @@ void Database_MySQL::printDeleteTable(const std::string &tableName, const boost:
 	writer.close();
 }
 
+void Database_MySQL::printDeleteRoutine(const std::string &routineName, const boost::filesystem::path &file) {
+	SafeWriter writer(file);
+
+	if (routineName.find(routinePrefix_procedure) == 0) {
+		writer.writeLine("DROP PROCEDURE " + routineName.substr(routinePrefix_procedure.size()) + ";");
+	}
+	else if (routineName.find(routinePrefix_function) == 0) {
+		writer.writeLine("DROP FUNCTION " + routineName.substr(routinePrefix_function.size()) + ";");
+	}
+	else {
+		THROW(boost::format("Invalid prefix in routine name: %1%") % routineName);
+	}
+
+	writer.close();
+}
+
 void Database_MySQL::import(const boost::filesystem::path &file) {
 	import_internal(file);
 }

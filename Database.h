@@ -13,6 +13,7 @@ public:
 	virtual void exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) = 0;
 	virtual void exportRoutine(const std::string &routineName, const boost::filesystem::path &file) = 0;
 	virtual void printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) = 0;
+	virtual void printDeleteRoutine(const std::string &routineName, const boost::filesystem::path &file) = 0;
 	virtual void import(const boost::filesystem::path &file) = 0;
 	virtual void clear() = 0;
 	virtual std::set<std::string> getTableDependencies(const std::string &tableName) = 0;
