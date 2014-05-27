@@ -82,6 +82,7 @@ void ConditionEvaluator::operator()(const sql::condition::Comparison &c) {
 	switch (value1.which()) {
 		case 0: result = ::applyOperator(boost::get<int64_t>(value1), boost::get<int64_t>(value2), c.op); break;
 		case 1: result = ::applyOperator(boost::get<std::string>(value1), boost::get<std::string>(value2), c.op); break;
+		default: THROW(boost::format("Unsupported type index in literal: %1%") % value1.which());
 	}
 }
 
