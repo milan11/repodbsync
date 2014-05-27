@@ -22,10 +22,6 @@ file(GLOB_RECURSE INC_LIST "*.h")
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${INC_LIST})
 
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  cotire(${PROJECT_NAME})
-endif()
-
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 target_link_libraries(${PROJECT_NAME}
   ${Boost_FILESYSTEM_LIBRARY}
@@ -42,3 +38,7 @@ endif()
 
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
+
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  cotire(${PROJECT_NAME})
+endif()
