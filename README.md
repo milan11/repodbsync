@@ -119,8 +119,5 @@ Please note that these descriptions refer to the state when everyone already has
 
 ### TODO
 * more concise output (maybe detailed help shown on user demand)
-* support more database engines
-* try Windows MSVC build
 * provide downloadable binaries
 * real-world examples (e.g. handling a standard Drupal database)
-* stored procedures

@@ -21,7 +21,10 @@ endif()
 file(GLOB_RECURSE INC_LIST "*.h")
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${INC_LIST})
-cotire(${PROJECT_NAME})
+
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  cotire(${PROJECT_NAME})
+endif()
 
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 target_link_libraries(${PROJECT_NAME}
