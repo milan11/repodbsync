@@ -12,13 +12,14 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQ
 endif()
 
 aux_source_directory(. SRC_LIST)
+file(GLOB_RECURSE INC_LIST "*.h")
 
 if(TESTMODE)
   list(REMOVE_ITEM "SRC_LIST" ./main.cpp)
+  list(REMOVE_ITEM "INC_LIST" ./main.h)
   aux_source_directory(tests SRC_LIST)
+  file(GLOB_RECURSE INC_LIST "tests/*.h")
 endif()
-
-file(GLOB_RECURSE INC_LIST "*.h")
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${INC_LIST})
 
