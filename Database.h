@@ -7,6 +7,8 @@
 
 class Database {
 public:
+	virtual ~Database() {};
+
 	virtual std::set<std::string> getTables() = 0;
 	virtual std::set<std::string> getRoutines() = 0;
 	virtual void exportTable(const std::string &tableName, const boost::filesystem::path &file) = 0;

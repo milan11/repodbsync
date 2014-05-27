@@ -10,7 +10,7 @@ int BOOST_TEST_CALL_DECL
 main( int argc, char* argv[] )
 {
 	std::vector<char *> modifiedArgv;
-	modifiedArgv.resize(argc + 1);
+	modifiedArgv.resize(static_cast<unsigned int>(argc) + 1);
 
 	std::copy(argv, argv + argc, &modifiedArgv[0]);
 
@@ -20,7 +20,7 @@ main( int argc, char* argv[] )
 	systemErrorsNo.resize(systemErrorsNoStrLength);
 	std::copy(systemErrorsNoStr, systemErrorsNoStr + systemErrorsNoStrLength, &systemErrorsNo[0]);
 
-	modifiedArgv[argc] = &systemErrorsNo[0];
+	modifiedArgv[static_cast<unsigned int>(argc)] = &systemErrorsNo[0];
 
-	return ::boost::unit_test::unit_test_main( &init_unit_test, modifiedArgv.size(), &modifiedArgv[0] );
+	return ::boost::unit_test::unit_test_main( &init_unit_test, static_cast<int>(modifiedArgv.size()), &modifiedArgv[0] );
 }

@@ -5,6 +5,7 @@
 #include <vector>
 
 class Question {
+
 public:
 	struct Option {
 		Option(std::string key, std::string description);
@@ -13,7 +14,11 @@ public:
 		std::string description;
 	};
 
-	typedef uint32_t OptionIndex;
+private:
+	typedef std::vector<Option> Options;
+
+public:
+	typedef Options::size_type OptionIndex;
 
 	void setText(std::string text);
 	OptionIndex addOption(std::string key, std::string description);
@@ -24,7 +29,6 @@ public:
 private:
 	std::string text;
 
-	typedef std::vector<Option> Options;
 	Options options;
 
 };

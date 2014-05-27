@@ -24,12 +24,19 @@ uint32_t stringToNumber(const std::string &str) {
 	uint32_t result = 0;
 	try {
 		size_t pos;
-		result = std::stoul(str, &pos);
+
+		unsigned long result_ul = std::stoul(str, &pos);
 		if (pos != str.size()) {
 			throw 0;
 		}
+
+		if (result_ul > static_cast<unsigned long>(std::numeric_limits<uint32_t>::max())) {
+			throw 1;
+		}
+
+		result = static_cast<uint32_t>(result_ul);
 	} catch (...) {
-		THROW(boost::format("Not a number: %1%") % str);
+		THROW(boost::format("Not a valid number: %1%") % str);
 	}
 
 	return result;
