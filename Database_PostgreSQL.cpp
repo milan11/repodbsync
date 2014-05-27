@@ -82,6 +82,7 @@ void Database_PostgreSQL::exportRoutine(const std::string &routineName, const bo
 	Command command("psql");
 
 	appendConnectionParamsAndVars_psql(command);
+	appendFormattingParams_psql(command);
 
 	command
 		.appendArgument("--quiet")
