@@ -72,24 +72,66 @@ void Database_MySQL::exportData(const std::string &tableName, const std::string 
 }
 
 void Database_MySQL::exportRoutine(const std::string &routineName, const boost::filesystem::path &file) {
+	TempFile routineDump = temp.createFile();
+
 	Command command("mysql");
 
 	appendConnectionParams(command);
 	command.appendArgument("-e");
 
+	std::string label_begin;
+	std::string label_end = "character_set_client: ";
+
 	if (routineName.find(routinePrefix_procedure) == 0) {
-		command.appendArgument("SHOW CREATE PROCEDURE " + routineName.substr(routinePrefix_procedure.size()) + ";");
+		command.appendArgument("SHOW CREATE PROCEDURE " + routineName.substr(routinePrefix_procedure.size()) + "\\G;");
+		label_begin = "Create Procedure: ";
 	}
 	else if (routineName.find(routinePrefix_function) == 0) {
-		command.appendArgument("SHOW CREATE FUNCTION " + routineName.substr(routinePrefix_function.size()) + ";");
+		command.appendArgument("SHOW CREATE FUNCTION " + routineName.substr(routinePrefix_function.size()) + "\\G;");
+		label_begin = "Create Function: ";
 	}
 	else {
 		THROW(boost::format("Invalid prefix in routine name: %1%") % routineName);
 	}
 
-	command.appendRedirectTo(file);
+	command.appendRedirectTo(routineDump.path());
 
 	command.execute();
+
+	const std::string delimiter = "//routine//";
+
+	SafeWriter writer(file);
+	LinesReader reader(routineDump.path());
+	bool inRoutine = false;
+	bool found = false;
+	while (boost::optional<std::string> line = reader.readLine()) {
+		const std::string line_trimmed = boost::algorithm::trim_copy(*line);
+		if (! inRoutine) {
+			if (line_trimmed.find(label_begin) == 0) {
+				inRoutine = true;
+				found = true;
+				writer.writeLine("DELIMITER " + delimiter + "; ");
+				writer.writeLine(line_trimmed.substr(label_begin.size()));
+			}
+		} else {
+			if (line_trimmed.find(label_end) == 0) {
+				writer.writeLine(delimiter + "; ");
+				writer.writeLine("DELIMITER ;");
+				inRoutine = false;
+			} else {
+				writer.writeLine(line_trimmed);
+			}
+		}
+	}
+
+	if (! found) {
+		THROW(boost::format("Routine begin not found in the output: %1%") % routineName);
+	}
+	if (inRoutine) {
+		THROW(boost::format("Routine end not found in the output: %1%") % routineName);
+	}
+
+	writer.close();
 }
 
 void Database_MySQL::printDeleteTable(const std::string &tableName, const boost::filesystem::path &file) {

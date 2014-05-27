@@ -380,7 +380,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_routine, F, Fixtures) {
 		}
 		else if (db->getType() == DatabaseType::POSTGRESQL) {
 			expectedRoutines = {
-				db->changeNameCase("user_count_f()")
+				db->changeNameCase("user_count_p(integer)")
 			};
 		}
 		else {
