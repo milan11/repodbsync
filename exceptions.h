@@ -11,4 +11,4 @@ std::string stripDirectories(const std::string &path);
 
 #define HANDLE_RETHROW(text) catch (const std::runtime_error &e) { PRINT(e); THROW(text); }
 #define HANDLE_PRINT_AND_RETURN catch (const std::runtime_error &e) { PRINT(e); return 1; }
-#define HANDLE_IGNORE catch (const std::runtime_error &e) {}
+#define HANDLE_IGNORE catch (const std::runtime_error &) {}

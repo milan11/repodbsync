@@ -1,87 +1,27 @@
-# https://gist.github.com/larsch/573926
-MACRO(ADD_PRECOMPILED_HEADER _targetName _input)
-  GET_FILENAME_COMPONENT(_inputWe ${_input} NAME_WE)
-  SET(pch_source ${_inputWe}.cpp)
-  FOREACH(arg ${ARGN})
-    IF(arg STREQUAL FORCEINCLUDE)
-      SET(FORCEINCLUDE ON)
-    ELSE(arg STREQUAL FORCEINCLUDE)
-      SET(FORCEINCLUDE OFF)
-    ENDIF(arg STREQUAL FORCEINCLUDE)
-  ENDFOREACH(arg)
-
-  IF(MSVC)
-    GET_TARGET_PROPERTY(sources ${_targetName} SOURCES)
-    SET(_sourceFound FALSE)
-    FOREACH(_source ${sources})
-      SET(PCH_COMPILE_FLAGS "")
-      IF(_source MATCHES \\.\(cc|cxx|cpp\)$)
-        GET_FILENAME_COMPONENT(_sourceWe ${_source} NAME_WE)
-        IF(_sourceWe STREQUAL ${_inputWe})
-          SET(PCH_COMPILE_FLAGS "${PCH_COMPILE_FLAGS} /Yc${_input}")
-          SET(_sourceFound TRUE)
-        ELSE(_sourceWe STREQUAL ${_inputWe})
-          SET(PCH_COMPILE_FLAGS "${PCH_COMPILE_FLAGS} /Yu${_input}")
-          IF(FORCEINCLUDE)
-            SET(PCH_COMPILE_FLAGS "${PCH_COMPILE_FLAGS} /FI${_input}")
-          ENDIF(FORCEINCLUDE)
-        ENDIF(_sourceWe STREQUAL ${_inputWe})
-        SET_SOURCE_FILES_PROPERTIES(${_source} PROPERTIES COMPILE_FLAGS "${PCH_COMPILE_FLAGS}")
-      ENDIF(_source MATCHES \\.\(cc|cxx|cpp\)$)
-    ENDFOREACH()
-    IF(NOT _sourceFound)
-      MESSAGE(FATAL_ERROR "A source file for ${_input} was not found. Required for MSVC builds.")
-    ENDIF(NOT _sourceFound)
-  ENDIF(MSVC)
-
-  IF(CMAKE_COMPILER_IS_GNUCXX)
-    GET_FILENAME_COMPONENT(_name ${_input} NAME)
-    SET(_source "${CMAKE_CURRENT_SOURCE_DIR}/${_input}")
-    SET(_outdir "${CMAKE_CURRENT_BINARY_DIR}/${_name}.gch")
-    MAKE_DIRECTORY(${_outdir})
-    SET(_output "${_outdir}/.c++")
-
-    STRING(TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" _flags_var_name)
-    SET(_compiler_FLAGS ${${_flags_var_name}})
-
-    GET_DIRECTORY_PROPERTY(_directory_flags INCLUDE_DIRECTORIES)
-    FOREACH(item ${_directory_flags})
-      LIST(APPEND _compiler_FLAGS "-I${item}")
-    ENDFOREACH(item)
-
-    GET_DIRECTORY_PROPERTY(_directory_flags DEFINITIONS)
-    LIST(APPEND _compiler_FLAGS ${_directory_flags})
-
-    LIST(APPEND _compiler_FLAGS "-std=c++0x")
-
-    SEPARATE_ARGUMENTS(_compiler_FLAGS)
-    MESSAGE("${CMAKE_CXX_COMPILER} -DPCHCOMPILE ${_compiler_FLAGS} -x c++-header -o {_output} ${_source}")
-    ADD_CUSTOM_COMMAND(
-      OUTPUT ${_output}
-      COMMAND ${CMAKE_CXX_COMPILER} ${_compiler_FLAGS} -x c++-header -o ${_output} ${_source}
-      DEPENDS ${_source} )
-    ADD_CUSTOM_TARGET(${_targetName}_gch DEPENDS ${_output})
-    ADD_DEPENDENCIES(${_targetName} ${_targetName}_gch)
-    SET_TARGET_PROPERTIES(${_targetName} PROPERTIES COMPILE_FLAGS "-include ${_name} -Winvalid-pch")
-  ENDIF(CMAKE_COMPILER_IS_GNUCXX)
-ENDMACRO()
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+include(cotire)
 
 set(TESTMODE false CACHE BOOL "Enable test mode")
 
 project(repodbsync)
 cmake_minimum_required(VERSION 2.8)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+endif()
+
 aux_source_directory(. SRC_LIST)
 
 if(TESTMODE)
   list(REMOVE_ITEM "SRC_LIST" ./main.cpp)
   aux_source_directory(tests SRC_LIST)
-endif(TESTMODE)
+endif()
 
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+file(GLOB_RECURSE INC_LIST "*.h")
 
-add_precompiled_header(repodbsync _precomp_header.h [FORCEINCLUDE])
+add_executable(${PROJECT_NAME} ${SRC_LIST} ${INC_LIST})
+cotire(${PROJECT_NAME})
 
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 target_link_libraries(${PROJECT_NAME}
@@ -95,4 +35,7 @@ if(TESTMODE)
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
   )
   ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
-endif(TESTMODE)
+endif()
+
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})

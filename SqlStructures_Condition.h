@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "SqlStructures.h"
 
 namespace sql {
@@ -37,7 +38,7 @@ typedef boost::variant<
 > Condition;
 
 struct List {
-	std::vector<Condition>  conditions;
+	std::vector<Condition> conditions;
 
 	void add(Condition condition);
 };
