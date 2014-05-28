@@ -556,15 +556,19 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_data_where, F, Fixtures) {
 	{
 		std::unique_ptr<DatabaseFixture> db = F::get();
 
+		const std::string thirdUserNameSqlString = "'Third User \" '' \\\\'";
+		const std::string thirdUserNameSqlString_escape = "'Third User \\\" \\' \\\\'";
+
 		thirdUserConditions = std::set<std::string> {
 			db->changeNameCase("Id") + " = 3",
-			db->changeNameCase("Name") + " = 'Third User'",
-			db->changeNameCase("Id") + " = 3 AND " + db->changeNameCase("Name") + " = 'Third User'",
+			db->changeNameCase("Name") + " = " + thirdUserNameSqlString,
+			db->changeNameCase("Name") + " = " + thirdUserNameSqlString_escape,
+			db->changeNameCase("Id") + " = 3 AND " + db->changeNameCase("Name") + " = " + thirdUserNameSqlString,
 			db->changeNameCase("Id") + " = 3 OR " + db->changeNameCase("Name") + " = 'Non Existing User'",
-			db->changeNameCase("Id") + " = -3 OR " + db->changeNameCase("Name") + " = 'Third User'",
+			db->changeNameCase("Id") + " = -3 OR " + db->changeNameCase("Name") + " = " + thirdUserNameSqlString,
 			"NOT (" + db->changeNameCase("Id") + " <> 3)",
-			"NOT (" + db->changeNameCase("Name") + " <> 'Third User')",
-			"NOT (" + db->changeNameCase("Id") + " <> 3 OR " + db->changeNameCase("Name") + " <> 'Third User')"
+			"NOT (" + db->changeNameCase("Name") + " <> " + thirdUserNameSqlString + ")",
+			"NOT (" + db->changeNameCase("Id") + " <> 3 OR " + db->changeNameCase("Name") + " <> " + thirdUserNameSqlString + ")"
 		};
 	}
 

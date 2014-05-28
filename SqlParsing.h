@@ -22,15 +22,20 @@ struct CommonRules {
 
 		value = literal[_val = _1] | column[_val = _1];
 
-		literal = int_[_val = _1] | quoted_string[_val = _1];
+		literal = int_[_val = _1] | quotedString[_val = _1];
 
 		auto columnName = (alpha | '_' | '@' | '#') >> *(alpha | digit | '_' | '@' | '#' | '$');
 		column = lexeme[as_string[columnName][_val = _1] | ('"' >> as_string[columnName][_val = _1] >> '"')];
 
-		auto charsExcludingQuote = *(~char_('\''));
-		quoted_string = lexeme[
-			('\'' >> as_string[charsExcludingQuote][_val += _1] >> '\'')
-			>> *('\'' >> as_string[charsExcludingQuote][_val += ('\'' + _1)] >> '\'')
+		char quote = '\'';
+		char escapeChar = '\\';
+
+		auto escapedChar = (escapeChar >> char_[_val += _1]);
+
+		auto partInQuotes = *(escapedChar | (~char_(quote))[_val += _1]);
+		quotedString = lexeme[
+			(quote >> as_string[partInQuotes] >> quote)
+			>> *(char_(quote)[_val += quote] >> as_string[partInQuotes] >> quote)
 		];
 	}
 
@@ -41,7 +46,7 @@ struct CommonRules {
 	rule<sql::Literal()> literal;
 	rule<sql::Column()> column;
 
-	rule<std::string()> quoted_string;
+	rule<std::string()> quotedString;
 };
 
 }

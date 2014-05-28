@@ -43,3 +43,24 @@ BOOST_AUTO_TEST_CASE(insert_into_text_empty) {
 		"INSERT INTO table1 (column1, column2, column3) VALUES ('', 2, -2)"
 	);
 }
+
+BOOST_AUTO_TEST_CASE(insert_into_quoted_string) {
+	::check(
+		"INSERT INTO table1 (column1, column2, column3) VALUES ('abc''d\"ef', 2, -2)",
+		"INSERT INTO table1 (column1, column2, column3) VALUES ('abc''d\"ef', 2, -2)"
+	);
+}
+
+BOOST_AUTO_TEST_CASE(insert_into_quoted_string_escape) {
+	::check(
+		"INSERT INTO table1 (column1, column2, column3) VALUES ('abc\\'d\\\"ef', 2, -2)",
+		"INSERT INTO table1 (column1, column2, column3) VALUES ('abc''d\"ef', 2, -2)"
+	);
+}
+
+BOOST_AUTO_TEST_CASE(insert_into_quoted_string_mixed) {
+	::check(
+		"INSERT INTO table1 (column1, column2, column3) VALUES ('abc\\'d''\\\"ef', 2, -2)",
+		"INSERT INTO table1 (column1, column2, column3) VALUES ('abc''d''\"ef', 2, -2)"
+	);
+}

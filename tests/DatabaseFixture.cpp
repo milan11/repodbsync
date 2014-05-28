@@ -82,7 +82,7 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 	w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ", " + name("Role") + ") VALUES (2, 'Second User', 1);");
 
 	if (! withoutThirdUser) {
-		w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ", " + name("Role") + ") VALUES (3, 'Third User', 1);");
+		w.writeLine("INSERT INTO " + name("User") + " (" + name("Id") + ", " + name("Name") + ", " + name("Role") + ") VALUES (3, 'Third User \" '' \\\\', 1);");
 	}
 
 	w.writeLine("INSERT INTO " + name("Message") + " (" + name("Text") + ", " + name("From") + ", " + name("To") + ", " + name("Date") + ") VALUES ('hello', 1, 2, '2014-05-18');");
