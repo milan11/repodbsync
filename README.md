@@ -2,7 +2,7 @@
 synchronization of development databases with SQL scripts in a shared repository
 
 ### VERSION
-0.2
+0.3
 
 ### DESCRIPTION
 Helps to maintain local development database instances and one main database storage in a source code repository (in form of database creation scripts).
