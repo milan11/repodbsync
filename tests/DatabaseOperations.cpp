@@ -190,14 +190,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(get_routines, F, Fixtures) {
 
 	if (db->getType() == DatabaseType::MYSQL) {
 		expectedRoutines = {
-			db->changeNameCase("procedure_user_count"),
-			db->changeNameCase("function_user_count")
+			db->changeNameCase("procedure_" + db->changeNameCase("UserCount")),
+			db->changeNameCase("function_" + db->changeNameCase("UserCount"))
 		};
 	}
 	else if (db->getType() == DatabaseType::POSTGRESQL) {
 		expectedRoutines = {
-			db->changeNameCase("user_count_p(integer)"),
-			db->changeNameCase("user_count_f()")
+			db->changeNameCase(db->changeNameCase("UserCount_p") + "(integer)"),
+			db->changeNameCase(db->changeNameCase("UserCount_pout") + "(integer)"),
+			db->changeNameCase(db->changeNameCase("UserCount_f") + "()"),
+			db->changeNameCase(db->changeNameCase("TriggerFunction") + "()")
 		};
 	}
 	else {
@@ -272,12 +274,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_structure, F, Fixtures) {
 	Temp temp("temp_test");
 
 	TempFile dump = temp.createFile();
+	TempFile triggerFunction = temp.createFile();
 
 	{
 		std::unique_ptr<DatabaseFixture> db = F::get();
 
 		db->fillDataA();
 
+		if (db->getType() == DatabaseType::POSTGRESQL) {
+			db->get().exportRoutine(db->changeNameCase("TriggerFunction") + "()", triggerFunction.path());
+		}
 		db->get().exportTable(db->changeNameCase("UserRole"), dump.path());
 	}
 
@@ -286,6 +292,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_structure, F, Fixtures) {
 	{
 		std::unique_ptr<DatabaseFixture> db = F::get();
 
+		if (db->getType() == DatabaseType::POSTGRESQL) {
+			db->get().import(triggerFunction.path());
+		}
 		db->get().import(dump.path());
 
 		std::set<std::string> tables = db->get().getTables();
@@ -308,12 +317,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_data, F, Fixtures) {
 
 	TempFile structureDump = temp.createFile();
 	TempFile dataDump = temp.createFile();
+	TempFile triggerFunction = temp.createFile();
 
 	{
 		std::unique_ptr<DatabaseFixture> db = F::get();
 
 		db->fillDataA();
 
+		if (db->getType() == DatabaseType::POSTGRESQL) {
+			db->get().exportRoutine(db->changeNameCase("TriggerFunction") + "()", triggerFunction.path());
+		}
 		db->get().exportTable(db->changeNameCase("UserRole"), structureDump.path());
 		db->get().exportData(db->changeNameCase("UserRole"), "", dataDump.path());
 	}
@@ -323,6 +336,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_data, F, Fixtures) {
 	{
 		std::unique_ptr<DatabaseFixture> db = F::get();
 
+		if (db->getType() == DatabaseType::POSTGRESQL) {
+			db->get().import(triggerFunction.path());
+		}
 		db->get().import(structureDump.path());
 		db->get().import(dataDump.path());
 
@@ -352,10 +368,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_routine, F, Fixtures) {
 		db->fillDataA();
 
 		if (db->getType() == DatabaseType::MYSQL) {
-			db->get().exportRoutine("procedure_user_count", routineDump.path());
+			db->get().exportRoutine("procedure_" + db->changeNameCase("UserCount") , routineDump.path());
 		}
 		else if (db->getType() == DatabaseType::POSTGRESQL) {
-			db->get().exportRoutine("user_count_p(integer)", routineDump.path());
+			db->get().exportRoutine(db->changeNameCase("UserCount_p") + "(integer)", routineDump.path());
 		}
 		else {
 			THROW("Unsupported database in this test case");
@@ -375,12 +391,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_routine, F, Fixtures) {
 
 		if (db->getType() == DatabaseType::MYSQL) {
 			expectedRoutines = {
-				db->changeNameCase("procedure_user_count")
+				db->changeNameCase("procedure_" + db->changeNameCase("UserCount"))
 			};
 		}
 		else if (db->getType() == DatabaseType::POSTGRESQL) {
 			expectedRoutines = {
-				db->changeNameCase("user_count_p(integer)")
+				db->changeNameCase(db->changeNameCase("UserCount_p") + "(integer)")
 			};
 		}
 		else {
@@ -390,10 +406,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_routine, F, Fixtures) {
 		BOOST_CHECK_EQUAL_COLLECTIONS(routines.begin(), routines.end(), expectedRoutines.begin(), expectedRoutines.end());
 
 		if (db->getType() == DatabaseType::MYSQL) {
-			db->get().exportRoutine("procedure_user_count", routineDumpAfterImport.path());
+			db->get().exportRoutine("procedure_" + db->changeNameCase("UserCount"), routineDumpAfterImport.path());
 		}
 		else if (db->getType() == DatabaseType::POSTGRESQL) {
-			db->get().exportRoutine("user_count_p(integer)", routineDumpAfterImport.path());
+			db->get().exportRoutine(db->changeNameCase("UserCount_p") + "(integer)", routineDumpAfterImport.path());
 		}
 		else {
 			THROW("Unsupported database in this test case");
@@ -402,6 +418,51 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_routine, F, Fixtures) {
 
 	TextDiff diff(routineDump.path(), routineDumpAfterImport.path());
 	BOOST_CHECK_EQUAL(diff.areEqual(), true);
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(export_import_all, F, Fixtures) {
+	Temp temp("temp_test");
+
+	TempFile structureDump = temp.createFile();
+	TempFile dataDump = temp.createFile();
+	TempFile routineDump = temp.createFile();
+	TempFile triggerFunction = temp.createFile();
+
+	{
+		std::unique_ptr<DatabaseFixture> db = F::get();
+
+		db->fillDataA();
+
+		if (db->getType() == DatabaseType::POSTGRESQL) {
+			db->get().exportRoutine(db->changeNameCase("TriggerFunction") + "()", triggerFunction.path());
+		}
+		db->get().exportTable(db->changeNameCase("UserRole"), structureDump.path());
+		db->get().exportData(db->changeNameCase("UserRole"), "", dataDump.path());
+		if (db->getType() == DatabaseType::MYSQL) {
+			db->get().exportRoutine("procedure_" + db->changeNameCase("UserCount"), routineDump.path());
+		}
+		else if (db->getType() == DatabaseType::POSTGRESQL) {
+			db->get().exportRoutine(db->changeNameCase("UserCount_p") + "(integer)", routineDump.path());
+		}
+		else if (db->getType() == DatabaseType::SQLITE) {
+			// nothing
+		} else {
+			THROW("Unsupported database in this test case");
+		}
+	}
+
+	{
+		std::unique_ptr<DatabaseFixture> db = F::get();
+
+		if (db->getType() == DatabaseType::POSTGRESQL) {
+			db->get().import(triggerFunction.path());
+		}
+		db->get().import(structureDump.path());
+		db->get().import(dataDump.path());
+		if (db->getType() != DatabaseType::SQLITE) {
+			db->get().import(routineDump.path());
+		}
+	}
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_table, F, Fixtures) {
@@ -442,10 +503,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_routine, F, Fixtures) {
 
 	TempFile deleteRoutine = temp.createFile();
 	if (db->getType() == DatabaseType::MYSQL) {
-		db->get().printDeleteRoutine("procedure_user_count", deleteRoutine.path());
+		db->get().printDeleteRoutine("procedure_" + db->changeNameCase("UserCount"), deleteRoutine.path());
 	}
 	else if (db->getType() == DatabaseType::POSTGRESQL) {
-		db->get().printDeleteRoutine("user_count_p(integer)", deleteRoutine.path());
+		db->get().printDeleteRoutine(db->changeNameCase("UserCount_p") + "(integer)", deleteRoutine.path());
 	}
 	else {
 		THROW("Unsupported database in this test case");
@@ -460,12 +521,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(print_delete_routine, F, Fixtures) {
 
 	if (db->getType() == DatabaseType::MYSQL) {
 		expectedRoutines = {
-			db->changeNameCase("function_user_count")
+			db->changeNameCase("function_" + db->changeNameCase("UserCount"))
 		};
 	}
 	else if (db->getType() == DatabaseType::POSTGRESQL) {
 		expectedRoutines = {
-			db->changeNameCase("user_count_f()")
+			db->changeNameCase(db->changeNameCase("UserCount_pout") + "(integer)"),
+			db->changeNameCase(db->changeNameCase("UserCount_f") + "()"),
+			db->changeNameCase(db->changeNameCase("TriggerFunction") + "()")
 		};
 	}
 	else {

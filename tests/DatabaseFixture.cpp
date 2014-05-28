@@ -114,13 +114,27 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 
 	if (type == DatabaseType::MYSQL) {
 		w.writeLine("delimiter //");
-		w.writeLine("CREATE PROCEDURE " + name("user_count") + " (OUT c INT) BEGIN SELECT COUNT(*) INTO c FROM User; END;//");
-		w.writeLine("CREATE FUNCTION " + name("user_count") + "() RETURNS INT READS SQL DATA BEGIN DECLARE c INT DEFAULT 0; SELECT COUNT(*) INTO c FROM User; RETURN c; END;//");
+		w.writeLine("CREATE PROCEDURE " + name("UserCount") + " (OUT c INT) BEGIN SELECT COUNT(*) INTO c FROM " + name("User") + "; END;//");
+		w.writeLine("CREATE FUNCTION " + name("UserCount") + "() RETURNS INT READS SQL DATA BEGIN DECLARE c INT DEFAULT 0; SELECT COUNT(*) INTO c FROM " + name("User") + "; RETURN c; END;//");
 	}
 
 	if (type == DatabaseType::POSTGRESQL) {
-		w.writeLine("CREATE FUNCTION " + name("user_count_p") + "(OUT c INT, unused INT) AS $$ BEGIN SELECT COUNT(*) INTO c FROM User; END; $$ LANGUAGE plpgsql;");
-		w.writeLine("CREATE FUNCTION " + name("user_count_f") + "() RETURNS INT AS $$ BEGIN SELECT COUNT(*) AS result FROM User; END; $$ LANGUAGE plpgsql;");
+		w.writeLine("CREATE FUNCTION " + name("UserCount_p") + "(unused INT) RETURNS VOID AS $$ BEGIN SELECT COUNT(*) FROM " + name("User") + "; END; $$ LANGUAGE plpgsql;");
+		w.writeLine("CREATE FUNCTION " + name("UserCount_pout") + "(OUT c INT, unused INT) AS $$ BEGIN SELECT COUNT(*) INTO c FROM " + name("User") + "; END; $$ LANGUAGE plpgsql;");
+		w.writeLine("CREATE FUNCTION " + name("UserCount_f") + "() RETURNS INT AS $$ BEGIN SELECT COUNT(*) AS result FROM " + name("User") + "; END; $$ LANGUAGE plpgsql;");
+	}
+
+	if (type == DatabaseType::MYSQL) {
+		w.writeLine("CREATE TRIGGER " + name("SomeTrigger") + " BEFORE INSERT ON " + name("UserRole") + " FOR EACH ROW SET @" + name("Description") + " = @" + name("Description") + ";");
+	}
+
+	if (type == DatabaseType::POSTGRESQL) {
+		w.writeLine("CREATE FUNCTION " + name("TriggerFunction") + "() RETURNS TRIGGER AS $$ BEGIN RETURN NEW; END; $$ LANGUAGE plpgsql;");
+		w.writeLine("CREATE TRIGGER " + name("SomeTrigger") + " BEFORE INSERT ON " + name("UserRole") + " FOR EACH ROW EXECUTE PROCEDURE " + name("TriggerFunction") + "();");
+	}
+
+	if (type == DatabaseType::SQLITE) {
+		w.writeLine("CREATE TRIGGER " + name("SomeTrigger") + " BEFORE INSERT ON " + name("UserRole") + " FOR EACH ROW BEGIN UPDATE UserRole SET " + name("Description") + " = " + name("Description") + " WHERE " + name("Id") + " = NEW." + name("Id") + "; END;");
 	}
 
 	w.close();

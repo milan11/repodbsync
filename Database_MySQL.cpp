@@ -53,6 +53,7 @@ void Database_MySQL::exportData(const std::string &tableName, const std::string 
 		.appendArgument("--compact")
 		.appendArgument("--no-create-info")
 		.appendArgument("--skip-extended-insert")
+		.appendArgument("--skip-triggers")
 		.appendArgument("--order-by-primary")
 	;
 

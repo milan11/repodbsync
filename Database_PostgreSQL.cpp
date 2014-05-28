@@ -87,7 +87,7 @@ void Database_PostgreSQL::exportRoutine(const std::string &routineName, const bo
 	command
 		.appendArgument("--quiet")
 		.appendArgument("-c")
-		.appendArgument("SELECT pg_get_functiondef(\'" + routineName + "\'::regprocedure);")
+		.appendArgument("SELECT pg_get_functiondef(\'" + quoteRoutineName(routineName) + "\'::regprocedure);")
 		.appendRedirectTo(file)
 		.execute();
 }
@@ -100,7 +100,7 @@ void Database_PostgreSQL::printDeleteTable(const std::string &tableName, const b
 
 void Database_PostgreSQL::printDeleteRoutine(const std::string &routineName, const boost::filesystem::path &file) {
 	SafeWriter writer(file);
-	writer.writeLine("DROP FUNCTION " + routineName + ";");
+	writer.writeLine("DROP FUNCTION " + quoteRoutineName(routineName) + ";");
 	writer.close();
 }
 
@@ -366,7 +366,7 @@ void Database_PostgreSQL::deleteRoutine_internal(const std::string &routineName)
 	command
 		.appendArgument("--quiet")
 		.appendArgument("-c")
-		.appendArgument("DROP FUNCTION " + routineName + ";")
+		.appendArgument("DROP FUNCTION " + quoteRoutineName(routineName) + ";")
 		.execute();
 }
 
@@ -380,6 +380,9 @@ void Database_PostgreSQL::appendConnectionParamsAndVars_psql(Command &command) {
 
 		.appendArgument("-d")
 		.appendArgument(config.database)
+
+		.appendArgument("-v")
+		.appendArgument("ON_ERROR_STOP=1")
 	;
 
 	setPasswordVariable(command);
@@ -412,4 +415,14 @@ void Database_PostgreSQL::appendFormattingParams_psql(Command &command) {
 
 std::string Database_PostgreSQL::quoteName(const std::string &name) {
 	return '"' + name + '"';
+}
+
+std::string Database_PostgreSQL::quoteRoutineName(const std::string &name) {
+	std::string::size_type firstPar = name.find('(');
+
+	if (firstPar != std::string::npos) {
+		return quoteName(name.substr(0, firstPar)) + name.substr(firstPar);
+	} else {
+		return quoteName(name);
+	}
 }

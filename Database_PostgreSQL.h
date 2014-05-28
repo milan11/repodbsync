@@ -38,6 +38,7 @@ private:
 	static void appendFormattingParams_psql(Command &command);
 
 	std::string quoteName(const std::string &name);
+	std::string quoteRoutineName(const std::string &name);
 
 private:
 	const Config_Db &config;
