@@ -21,6 +21,8 @@ possible cmake arguments:
 * debug build: -DCMAKE_BUILD_TYPE=Debug
 * build executable running tests instead of the normal executable: -DTESTMODE=1
 
+This project uses (and includes) cotire CMake module: https://github.com/sakra/cotire
+
 ### USAGE
 Just run it in some source code repository directory where you want the sql scripts and some configuration to be placed. It will guide you through the configuration and synchronization process.
 The executable does not process any arguments.
@@ -39,7 +41,7 @@ The executable does not process any arguments.
 	* for MySQL: mysql, mysqldump
 	* for PostgreSQL: psql, pgdump
 	* for SQLite: sqlite3
-* boost (linking with: system, filesystem)
+* boost (dynamic linking with: system, filesystem)
 
 ### SOURCE CODE DEPENDENCIES
 * boost
