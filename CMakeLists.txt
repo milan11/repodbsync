@@ -1,5 +1,5 @@
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
-include(cotire)
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
+include(CMakeLists_inc_cotire)
 
 set(TESTMODE false CACHE BOOL "Enable test mode")
 
@@ -12,13 +12,13 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQ
 endif()
 
 aux_source_directory(. SRC_LIST)
-file(GLOB INC_LIST "*.h")
-
 if(TESTMODE)
+  aux_source_directory(tests SRC_LIST)
+  file(GLOB INC_LIST "*.h" "tests/*.h")
   list(REMOVE_ITEM "SRC_LIST" ./main.cpp)
   list(REMOVE_ITEM "INC_LIST" ./main.h)
-  aux_source_directory(tests SRC_LIST)
-  file(GLOB INC_LIST "tests/*.h")
+else()
+  file(GLOB INC_LIST "*.h")
 endif()
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${INC_LIST})
