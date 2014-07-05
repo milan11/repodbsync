@@ -16,9 +16,24 @@ if(TESTMODE)
   aux_source_directory(tests SRC_LIST)
   file(GLOB INC_LIST "*.h" "tests/*.h")
   list(REMOVE_ITEM "SRC_LIST" ./main.cpp)
-  list(REMOVE_ITEM "INC_LIST" ./main.h)
+  list(REMOVE_ITEM "INC_LIST" ${CMAKE_CURRENT_SOURCE_DIR}/main.h)
 else()
   file(GLOB INC_LIST "*.h")
+endif()
+
+if (NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+  set(resources README.md)
+
+  foreach(resource IN LISTS resources)
+    message(STATUS ${resource})
+      add_custom_command(
+        OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${resource}"
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/${resource}" "${CMAKE_CURRENT_BINARY_DIR}/${resource}"
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${resource}"
+      )
+  endforeach()
+
+  add_custom_target(resources-target ALL DEPENDS ${resources})
 endif()
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${INC_LIST})
