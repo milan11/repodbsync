@@ -13,9 +13,9 @@ const std::string Database_MySQL::routinePrefix_procedure = "procedure_";
 const std::string Database_MySQL::routinePrefix_function = "function_";
 
 Database_MySQL::Database_MySQL(const Config_Db &config, Temp &temp)
-	:
-	  config(config),
-	  temp(temp)
+:
+	config(config),
+	temp(temp)
 {
 }
 

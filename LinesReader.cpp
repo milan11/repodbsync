@@ -2,9 +2,9 @@
 #include "exceptions.h"
 
 LinesReader::LinesReader(const boost::filesystem::path &file)
-	:
-	  is(file.string().c_str()),
-	  fileName(file.string())
+:
+	is(file.string().c_str()),
+	fileName(file.string())
 {
 	if (! is.good()) {
 		THROW(boost::format("File opening failed: %1%") % fileName);

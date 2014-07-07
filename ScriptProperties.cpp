@@ -24,9 +24,9 @@ ScriptProperties::ScriptProperties(const boost::filesystem::path &file) {
 }
 
 ScriptProperties::ScriptProperties(const uint32_t targetDbVersion, std::string name)
-	:
-	  targetDbVersion(targetDbVersion),
-	  name(std::move(name))
+:
+	targetDbVersion(targetDbVersion),
+	name(std::move(name))
 {
 }
 

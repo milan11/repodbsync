@@ -5,10 +5,10 @@
 #include <boost/property_tree/info_parser.hpp>
 
 Config::Config(boost::filesystem::path file, const DatabaseTypes &databaseTypes)
-	:
-	  file(std::move(file)),
-	  databaseTypes(databaseTypes),
-	  dbType(DatabaseType::MYSQL)
+:
+	file(std::move(file)),
+	databaseTypes(databaseTypes),
+	dbType(DatabaseType::MYSQL)
 {
 }
 

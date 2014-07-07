@@ -13,9 +13,9 @@
 const std::string Database_PostgreSQL::versionTableName = "versioninfo";
 
 Database_PostgreSQL::Database_PostgreSQL(const Config_Db &config, Temp &temp)
-	:
-	  config(config),
-	  temp(temp)
+:
+	config(config),
+	temp(temp)
 {
 }
 

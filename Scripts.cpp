@@ -6,8 +6,8 @@
 #include "util.h"
 
 Scripts::Scripts(boost::filesystem::path dir)
-	:
-	  dir(std::move(dir))
+:
+	dir(std::move(dir))
 {
 	if (boost::filesystem::exists(dir) && (! boost::filesystem::is_directory(dir))) {
 		THROW("Scripts file exists but is not a directory.");

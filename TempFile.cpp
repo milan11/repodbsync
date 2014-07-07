@@ -4,9 +4,9 @@
 #include "exceptions.h"
 
 TempFile::TempFile(boost::filesystem::path file)
-	:
-	  file(std::move(file)),
-	  moved(false)
+:
+	file(std::move(file)),
+	moved(false)
 {
 }
 

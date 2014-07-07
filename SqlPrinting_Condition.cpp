@@ -4,8 +4,8 @@
 #include "exceptions.h"
 
 SqlPrinter_Condition::SqlPrinter_Condition(std::ostream &s)
-	:
-	  s(s)
+:
+	s(s)
 {
 }
 

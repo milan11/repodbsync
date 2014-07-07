@@ -5,8 +5,8 @@
 #include "util.h"
 
 Temp::Temp(boost::filesystem::path dir)
-	:
-	  dir(std::move(dir))
+:
+	dir(std::move(dir))
 {
 	if (boost::filesystem::exists(dir) && (! boost::filesystem::is_directory(dir))) {
 		THROW("Temp file exists but is not a directory.");

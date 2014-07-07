@@ -4,9 +4,9 @@
 #include "exceptions.h"
 
 SafeWriter::SafeWriter(const boost::filesystem::path &file)
-	:
-	  fileName(file.string()),
-	  closed(false)
+:
+	fileName(file.string()),
+	closed(false)
 {
 	if (boost::filesystem::exists(file)) {
 		THROW(boost::format("Unable to write to file (file already exists): %1%") % fileName);

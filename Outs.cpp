@@ -5,8 +5,8 @@
 #include "util.h"
 
 Outs::Outs(boost::filesystem::path dir)
-	:
-	  dir(std::move(dir))
+:
+	dir(std::move(dir))
 {
 	if (boost::filesystem::exists(dir) && (! boost::filesystem::is_empty(dir))) {
 		THROW("Outs directory is not empty. Maybe there are some unresolved filed from previous run.");

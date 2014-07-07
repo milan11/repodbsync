@@ -12,9 +12,9 @@
 const std::string Database_SQLite::versionTableName = "versioninfo";
 
 Database_SQLite::Database_SQLite(const Config_Db &config, Temp &temp)
-	:
-	  config(config),
-	  temp(temp)
+:
+	config(config),
+	temp(temp)
 {
 }
 

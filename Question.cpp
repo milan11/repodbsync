@@ -3,9 +3,9 @@
 #include <iostream>
 
 Question::Option::Option(std::string key, std::string description)
-	:
-	  key(std::move(key)),
-	  description(std::move(description))
+:
+	key(std::move(key)),
+	description(std::move(description))
 {
 }
 

@@ -7,9 +7,9 @@
 #include "exceptions.h"
 
 ConditionEvaluator::ConditionEvaluator(const sql::insert::Insert &insert)
-	:
-	  insert(insert),
-	  result(false)
+:
+	insert(insert),
+	result(false)
 {
 }
 

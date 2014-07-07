@@ -7,10 +7,10 @@
 #include "../exceptions.h"
 
 DatabaseFixture::DatabaseFixture(const DatabaseType type, const bool lowerCaseNames)
-	:
-	  type(type),
-	  lowerCaseNames(lowerCaseNames),
-	  temp("temp")
+:
+	type(type),
+	lowerCaseNames(lowerCaseNames),
+	temp("temp")
 {
 	DatabaseTypes databaseTypes;
 	boost::property_tree::ptree pt;
@@ -107,10 +107,10 @@ void DatabaseFixture::fillDataA_internal(const bool &withoutThirdUser) {
 		w.writeLine("ALTER TABLE " + name("CyclicB") + " ADD COLUMN " + name("refBtoA") + " INTEGER NOT NULL DEFAULT 0 REFERENCES " + name("CyclicA") + "(" + name("Id") + ");");
 	}
 
-	w.writeLine("INSERT INTO " + name("CyclicA")  + " (" + name("Id") + ") VALUES (2);");
-	w.writeLine("INSERT INTO " + name("CyclicB")  + " (" + name("Id") + ", " + name("refBtoA") + ") VALUES (3, 2);");
+	w.writeLine("INSERT INTO " + name("CyclicA") + " (" + name("Id") + ") VALUES (2);");
+	w.writeLine("INSERT INTO " + name("CyclicB") + " (" + name("Id") + ", " + name("refBtoA") + ") VALUES (3, 2);");
 
-	w.writeLine("UPDATE " + name("CyclicA")  + "SET " + name("refAtoB") + " = 3;");
+	w.writeLine("UPDATE " + name("CyclicA") + "SET " + name("refAtoB") + " = 3;");
 
 	if (type == DatabaseType::MYSQL) {
 		w.writeLine("delimiter //");
