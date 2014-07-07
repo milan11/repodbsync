@@ -33,8 +33,6 @@ const boost::filesystem::path &Temp::path() const {
 }
 
 boost::filesystem::path Temp::generateRandomChildPath() {
-	::srand(static_cast<unsigned int>(::time(NULL)));
-
 	while (true) {
 		int num = ::rand();
 		if (assignedNumbers.find(num) == assignedNumbers.end()) {

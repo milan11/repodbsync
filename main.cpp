@@ -37,6 +37,8 @@ int main() {
 }
 
 void main_inner() {
+    ::srand(static_cast<unsigned int>(::time(NULL)));
+
 	DatabaseTypes databaseTypes;
 
 	Config config = createConfig(databaseTypes);

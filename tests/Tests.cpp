@@ -44,6 +44,8 @@ void loadManualArguments(int argc, char* argv[]) {
 
 int BOOST_TEST_CALL_DECL
 main(int argc, char *argv[]) {
+    ::srand(static_cast<unsigned int>(::time(NULL)));
+
     executablePath = getExecutableDirectory((argc > 0) ? argv[0] : "");
     loadManualArguments(argc, argv);
 
