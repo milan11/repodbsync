@@ -1,5 +1,6 @@
 #include "Database_MySQL.h"
 
+#include <regex>
 #include <sstream>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -30,6 +31,8 @@ std::set<std::string> Database_MySQL::getRoutines() {
 }
 
 void Database_MySQL::exportTable(const std::string &tableName, const boost::filesystem::path &file) {
+	TempFile tableDump = temp.createFile();
+
 	Command command("mysqldump");
 
 	appendConnectionParams(command);
@@ -38,9 +41,19 @@ void Database_MySQL::exportTable(const std::string &tableName, const boost::file
 		.appendArgument(tableName)
 		.appendArgument("--compact")
 		.appendArgument("--no-data")
-		.appendRedirectTo(file)
+		.appendRedirectTo(tableDump.path())
 		.execute()
 	;
+
+	SafeWriter writer(file);
+	LinesReader reader(tableDump.path());
+
+	std::regex autoIncrement(" AUTO_INCREMENT=\\d+", std::regex_constants::icase);
+	while (boost::optional<std::string> line = reader.readLine()) {
+		writer.writeLine(std::regex_replace(*line, autoIncrement, ""));
+	}
+
+	writer.close();
 }
 
 void Database_MySQL::exportData(const std::string &tableName, const std::string &ignoreWhere, const boost::filesystem::path &file) {
