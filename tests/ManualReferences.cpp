@@ -1,7 +1,8 @@
 #include <boost/test/unit_test.hpp>
 
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include "../LinesReader.h"
 #include "../Manual.h"
 
