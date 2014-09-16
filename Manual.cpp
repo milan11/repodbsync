@@ -10,7 +10,10 @@ namespace {
 Manual::Manual()
 :
 	items{
-		{ManualItem::SETTINGS_FILE, {"1.0", "Settings File"}},
+		{ManualItem::SETTINGS_FILE, {"A.", "Settings file"}},
+		{ManualItem::DATABASE_VERSIONING, {"B.", "Database versioning"}},
+		{ManualItem::APPLYING_SCRIPTS, {"C.", "Applying scripts to local database"}},
+		{ManualItem::ADDING_SCRIPTS_TO_REPOSITORY, {"D.", "Adding database scripts to the repository"}},
 	}
 {
 }

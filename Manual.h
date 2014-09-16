@@ -6,6 +6,9 @@
 
 enum class ManualItem {
 	SETTINGS_FILE,
+	DATABASE_VERSIONING,
+	APPLYING_SCRIPTS,
+	ADDING_SCRIPTS_TO_REPOSITORY,
 };
 
 struct ManualItemHeading {

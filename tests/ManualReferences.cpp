@@ -23,6 +23,35 @@ namespace {
 
 		return false;
 	}
+
+	std::string escapeMarkdown(const std::string &str) {
+		std::ostringstream ss;
+
+		for (const char &c : str) {
+			switch (c) {
+				case '\\':
+				case '`':
+				case '*':
+				case '_':
+				case '{':
+				case '}':
+				case '[':
+				case ']':
+				case '(':
+				case ')':
+				case '#':
+				case '+':
+				case '-':
+				case '.':
+				case '!':
+					ss << '\\';
+				default:
+					ss << c;
+			}
+		}
+
+		return ss.str();
+	}
 }
 
 BOOST_AUTO_TEST_CASE(manual_references) {
@@ -43,8 +72,8 @@ BOOST_AUTO_TEST_CASE(manual_references) {
 
 	for (const ManualItem item : items) {
 		const ManualItemHeading &heading = manual.getHeading(item);
-		std::string requiredString = heading.number + " " + heading.title;
+		std::string requiredString = ::escapeMarkdown(heading.number + " " + heading.title);
 
-		BOOST_REQUIRE_MESSAGE(fileContains(manualFile, requiredString), "Manual does not contain: " + requiredString);
+		BOOST_REQUIRE_MESSAGE(::fileContains(manualFile, requiredString), "Manual does not contain: " + requiredString);
 	}
 }
