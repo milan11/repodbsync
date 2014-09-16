@@ -8,6 +8,7 @@
 #include <boost/range/adaptor/reversed.hpp>
 #include "DatabaseTypes.h"
 #include "LinesReader.h"
+#include "Manual.h"
 #include "Question.h"
 #include "SafeWriter.h"
 #include "ScriptProperties.h"
@@ -222,7 +223,7 @@ void importScripts(Database &db, const Scripts &scripts) {
 void ensureIsVersioned(Database &db) {
 	if (! db.isVersioned()) {
 		Question question;
-		question.setText("The local database is not versioned. Add version information?");
+		question.setText("The local database is not versioned. Add version information " + ::seeManual(ManualItem::DATABASE_VERSIONING)  + "?");
 		const Question::OptionIndex option_yes = question.addOption("y", "yes");
 		(void)question.addOption("n", "no");
 		if (question.show() == option_yes) {
@@ -236,7 +237,7 @@ void ensureIsVersioned(Database &db) {
 void ensureNotHigherVersionThan(const uint32_t maxAllowedVersion, Database &db) {
 	if (db.getVersion() > maxAllowedVersion) {
 		Question question;
-		question.setText("The local database has higher version than the repository. Repair this by setting database version to the repository version? Current database version: " + std::to_string(db.getVersion()) + ", Current repository version: " + std::to_string(maxAllowedVersion));
+		question.setText("The local database has higher version than the repository. Repair this by setting database version to the repository version " + ::seeManual(ManualItem::DATABASE_VERSIONING)  + "? Current database version: " + std::to_string(db.getVersion()) + ", Current repository version: " + std::to_string(maxAllowedVersion));
 		const Question::OptionIndex option_yes = question.addOption("y", "yes");
 		(void)question.addOption("n", "no");
 		if (question.show() == option_yes) {
@@ -249,10 +250,10 @@ void ensureNotHigherVersionThan(const uint32_t maxAllowedVersion, Database &db) 
 
 void applyMissingScripts(Database &db, const Scripts &scripts) {
 	Question question;
-	const Question::OptionIndex option_automatic = question.addOption("y", "Apply script automatically.");
-	(void)question.addOption("n", "Increment the version only - if you have changed your local database manually to reflect the changes in this script or if you already had your database in the target state (e.g. when you just created this new script to reflect your local database).");
-	const Question::OptionIndex option_automatic_all = question.addOption("yall", "Apply all scripts automatically (maybe dangerous).");
-	const Question::OptionIndex option_manual_all = question.addOption("nall", "Increment the version to the target version of the last script - if you know that you have applied all changes from the scripts in your database.");
+	const Question::OptionIndex option_automatic = question.addOption("y", "apply script");
+	(void)question.addOption("n", "increment version only");
+	const Question::OptionIndex option_automatic_all = question.addOption("yall", "apply all scripts");
+	const Question::OptionIndex option_manual_all = question.addOption("nall", "increment version to the target version of the last script");
 	const Question::OptionIndex option_abort = question.addOption("a", "Abort.");
 
 	Question::OptionIndex selectedOption = option_abort;
@@ -264,7 +265,7 @@ void applyMissingScripts(Database &db, const Scripts &scripts) {
 		const uint32_t scriptTargetVersion = scriptProperties.getTargetDbVersion();
 		if (dbVersion < scriptTargetVersion) {
 			if ((selectedOption != option_automatic_all) && (selectedOption != option_manual_all)) {
-				question.setText("The script " + scriptProperties.getName() + " will upgrade your local database to version " + std::to_string(scriptProperties.getTargetDbVersion()) + ". Apply?");
+				question.setText("The script " + scriptProperties.getName() + " will upgrade your local database to version " + std::to_string(scriptProperties.getTargetDbVersion()) + ". Apply " + ::seeManual(ManualItem::APPLYING_SCRIPTS) +  "?");
 
 				selectedOption = question.show();
 			}
@@ -527,74 +528,55 @@ void printDifferences(const SortedTables &sortedTables, const DifferentTables &d
 	;
 
 	if (differences) {
-		std::cout << "There are some differences between the repository and your local database. There are 4 ways to resolve a difference:" << std::endl;
-		std::cout << "  1. Add scripts to the repository (scripts directory) which will reflect the state of your local database." << std::endl;
-		std::cout << "  2. Make changes in your local database to reflect the state of the repository database. Maybe this is a rare case, because you should already have all relevant changes from the repository applied to your local database because you have the same version of the database." << std::endl;
-		std::cout << "  3. Ignore the table. Add its name on a separate line to the file ignore_tables.txt (shared in the repository) or ignore_tables_local.txt (for you only)." << std::endl;
-		std::cout << "  4. Ignore the table data. Add its name on a separate line to the file ignore_data.txt (shared in the repository) or ignore_data_local.txt (for you only)." << std::endl;
-		std::cout << "  5. Ignore routine. Add its name on a separate line to the file ignore_routines.txt (shared in the repository) or ignore_routines_local.txt (for you only)." << std::endl;
+		std::cout << "Resolve the differences between the repository and your local database by adding new scripts to the repository or setting up the differences to be ignored " << ::seeManual(ManualItem::ADDING_SCRIPTS_TO_REPOSITORY) << "." << std::endl;
 	}
 
 	if (! sortedTables.repositoryOnly.empty()) {
-		std::cout << "The following tables are in the repository, but are not in the local database." << std::endl;
-		std::cout << "  HINT: If you want to create new scripts in the repository deleting these tables, the files named named <num>_delete_<table>.sql in the outs directory can help you." << std::endl;
+		std::cout << "Tables present in the repository but not in the local database:" << std::endl;
 		for (const std::string &table : sortedTables.repositoryOnly) {
 			std::cout << "  " << table << std::endl;
 		}
 	}
 
 	if (! sortedTables.localOnly.empty()) {
-		std::cout << "The following tables are in the local database, but are missing in the repository." << std::endl;
-		std::cout << "  HINT: If you want to create new scripts in the repository creating these tables, the files named <num>_create_<table>.sql in the outs directory can help you." << std::endl;
+		std::cout << "Tables present in the local database but not in the repository:" << std::endl;
 		for (const std::string &table : sortedTables.localOnly) {
 			std::cout << "  " << table << std::endl;
 		}
 	}
 
 	if (! differentTables.differentTable.empty()) {
-		std::cout << "The following tables are different." << std::endl;
-		std::cout << "  HINT: The dumps of the two states of each table are in outs, named <table>_local.sql and <table>_repository.sql." << std::endl;
+		std::cout << "Tables with different structure:" << std::endl;
 		for (const std::string &table : differentTables.differentTable) {
 			std::cout << "  " << table << std::endl;
 		}
 	}
 
 	if (! differentTables.differentData.empty()) {
-		std::cout << "The following tables have different data:" << std::endl;
-		std::cout << "  HINT: The dumps of the two states of each table are in outs, named <table>_local.csv and <table>_repository.csv." << std::endl;
+		std::cout << "Tables with different data:" << std::endl;
 		for (const std::string &table : differentTables.differentData) {
 			std::cout << "  " << table << std::endl;
 		}
 	}
 
 	if (! sortedRoutines.repositoryOnly.empty()) {
-		std::cout << "The following routines are in the repository, but are not in the local database." << std::endl;
-		std::cout << "  HINT: If you want to create new scripts in the repository deleting these routines, the files named named <num>_routine_delete_<routine>.sql in the outs directory can help you." << std::endl;
+		std::cout << "Routines present in the repository but not in the local database:" << std::endl;
 		for (const std::string &routine : sortedRoutines.repositoryOnly) {
 			std::cout << "  " << routine << std::endl;
 		}
 	}
 
 	if (! sortedRoutines.localOnly.empty()) {
-		std::cout << "The following routines are in the local database, but are missing in the repository." << std::endl;
-		std::cout << "  HINT: If you want to create new scripts in the repository creating these routines, the files named <num>_routine_create_<routine>.sql in the outs directory can help you." << std::endl;
+		std::cout << "Routines present in the local database but not in the repository:" << std::endl;
 		for (const std::string &routine : sortedRoutines.localOnly) {
 			std::cout << "  " << routine << std::endl;
 		}
 	}
 
 	if (! differentRoutines.empty()) {
-		std::cout << "The following routines are different." << std::endl;
-		std::cout << "  HINT: The dumps of the two states of each table are in outs, named <routine>_local_routine.sql and <routine>_repository_routine.sql." << std::endl;
+		std::cout << "Different routines:" << std::endl;
 		for (const std::string &routine : differentRoutines) {
 			std::cout << "  " << routine << std::endl;
 		}
-	}
-
-	if (differences) {
-		std::cout << "Some more hints:" << std::endl;
-		std::cout << "  HINT: A script file has not to contain a database script regarding one table only. You can even add one single script creating the whole database (this can be the case for the first script)." << std::endl;
-		std::cout << "  HINT: The script names have to begin with a six digit number followed with an underscore. The numbers have to begin with 1 and no number can be missing." << std::endl;
-		std::cout << "  HINT: Remember that once committed, the scripts should not be changed. You can only add a following script reverting the change in the database (e.g. DROP TABLE reverting CREATE TABLE)." << std::endl;
 	}
 }
