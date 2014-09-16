@@ -21,7 +21,7 @@ private:
 
 private:
 	std::ostringstream ss;
-	typedef std::map<std::string, std::string> VariablesMap;
+	using VariablesMap = std::map<std::string, std::string>;
 	VariablesMap variables;
 
 };

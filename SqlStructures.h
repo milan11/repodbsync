@@ -6,9 +6,9 @@
 
 namespace sql {
 
-typedef std::string Column;
-typedef boost::variant<int64_t, std::string> Literal;
+using Column = std::string;
+using Literal = boost::variant<int64_t, std::string>;
 
-typedef boost::variant<Literal, Column> Value;
+using Value = boost::variant<Literal, Column>;
 
 }

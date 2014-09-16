@@ -15,10 +15,10 @@ public:
 	};
 
 private:
-	typedef std::vector<Option> Options;
+	using Options = std::vector<Option>;
 
 public:
-	typedef Options::size_type OptionIndex;
+	using OptionIndex = Options::size_type;
 
 	void setText(std::string text);
 	OptionIndex addOption(std::string key, std::string description);

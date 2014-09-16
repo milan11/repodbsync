@@ -14,7 +14,7 @@ struct Item {
 	explicit Item(Column column);
 };
 
-typedef std::vector<Item> Items;
+using Items = std::vector<Item>;
 
 struct Insert {
 	std::string table;

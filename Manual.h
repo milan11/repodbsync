@@ -26,7 +26,7 @@ public:
 	const ManualItemHeading &getHeading(const ManualItem item) const;
 
 private:
-	typedef std::map<ManualItem, ManualItemHeading> ItemsMap;
+	using ItemsMap = std::map<ManualItem, ManualItemHeading>;
 	ItemsMap items;
 
 };

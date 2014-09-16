@@ -25,7 +25,7 @@ private:
 	std::vector<std::string> getSupportedTypesStrings() const;
 
 private:
-	typedef boost::bimap<DatabaseType, std::string> MapType;
+	using MapType = boost::bimap<DatabaseType, std::string>;
 	MapType map;
 
 };
