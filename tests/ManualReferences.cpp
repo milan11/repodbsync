@@ -29,6 +29,12 @@ namespace {
 
 		for (const char &c : str) {
 			switch (c) {
+				case '<':
+					ss << "&lt;";
+					break;
+				case '>':
+					ss << "&gt;";
+					break;
 				case '\\':
 				case '`':
 				case '*':

@@ -63,12 +63,12 @@ Please note that the following descriptions refer to the state when everyone alr
 
 #### 2\. Set up \(fill the configuration file\)\.
 
-* run the RepoDbSync in that empty directory for the first time – it should generate an empty settings file
+* run RepoDbSync in that empty directory for the first time – it should generate an empty settings file
 * fill the settings file; see: A Settings file
 
 #### 3\. Set up database versioning\.
 
-* run the RepoDbSync with settings filled in
+* run RepoDbSync with settings filled in
 * see: B Database versioning
 
 #### 4\. Add database scripts to the repository\.
@@ -88,12 +88,13 @@ Please note that the following descriptions refer to the state when everyone alr
 
 #### 2\. Set up \(fill the configuration file\)\.
 
-* run the RepoDbSync in that directory for the first time – it should generate an empty settings file
+* run RepoDbSync in that directory for the first time – it should generate an empty settings file
 * fill the settings file; see: A Settings file
 
 #### 3\. Set up database versioning\.
 
-* run the RepoDbSync with settings filled in; see: B Database versioning
+* run RepoDbSync with settings filled in
+* see: B Database versioning
 
 #### 4\. Apply scripts to your local database\.
 
@@ -124,7 +125,7 @@ Please note that the following descriptions refer to the state when everyone alr
 
 * review the scripts you checked out from the repository
 * RepoDbSync can apply scripts which have higher target version than current version of your local database
-* RepoDbSync will ask you if it can apply each script automatically; but maybe you will have to make some changes in your local development database manually and let the RepoDbSync increment the database version only
+* RepoDbSync will ask you if it can apply each script automatically; but maybe you will have to make some changes in your local development database manually and let RepoDbSync increment the database version only
 * in general, for each script, you can select one of these options:
  * __apply script__ – applies the script and increments database version to the target version of the script
  * __increment version only__ – if you have changed your local database manually to reflect the changes in this script or if you already had your database in the target state \(e\.g\. when you just created this new script to reflect your local database\)
@@ -135,13 +136,13 @@ Please note that the following descriptions refer to the state when everyone alr
 
 * RepoDbSync will tell you what add to the repository so that the repository will exactly reflect your local development database
 * note the contents of the "outs" directory after each run, there are some created scripts that you can use when creating the scripts in the repository:
- * __<num>\_delete\_<table>\.sql__ – for tables which are in the repository only
- * __<num>\_create\_<table>\.sql__ – for tables which are in the local database only
- * __<table>\_local\.sql__ and __<table>\_repository\.sql__ – for tables with different structure
- * __<table>\_local\_data\.sql__ and __<table>\_repository\_data\.sql__ – for tables with different data
- * __<num>\_routine\_delete\_<routine>\.sql__ – for routines which are in the repository only
- * __<num>\_routine\_create\_<routine>\.sql__ – for routines which are in the local database only
- * __<routine>\_local\_routine\.sql__ and __<routine>\_repository\_routine\.sql__ – for routines which are different
+ * __&lt;num&gt;\_delete\_&lt;table&gt;\.sql__ – for tables which are in the repository only
+ * __&lt;num&gt;\_create\_&lt;table&gt;\.sql__ – for tables which are in the local database only
+ * __&lt;table&gt;\_local\.sql__ and __&lt;table&gt;\_repository\.sql__ – for tables with different structure
+ * __&lt;table&gt;\_local\_data\.sql__ and __&lt;table&gt;\_repository\_data\.sql__ – for tables with different data
+ * __&lt;num&gt;\_routine\_delete\_&lt;routine&gt;\.sql__ – for routines which are in the repository only
+ * __&lt;num&gt;\_routine\_create\_&lt;routine&gt;\.sql__ – for routines which are in the local database only
+ * __&lt;routine&gt;\_local\_routine\.sql__ and __&lt;routine&gt;\_repository\_routine\.sql__ – for routines which are different
 * the scripts must be named in the following way: version\_description\.sql
  * __version__ is the version which will the database have after applying this script \(a number must be aligned to six digits, first version is 000001, no version can be left out\)
  * __description__ is your own description \(e\.g\. create\_table\_user, fill\_users, delete\_table\_user\)
@@ -153,7 +154,7 @@ Please note that the following descriptions refer to the state when everyone alr
 * of course, you will have some specific tables or data in your local development database, which you do not want to share \(which do not form the base database state\), this can be e\.g\. data about users which you have added while testing etc\.
  * list tables you want to ignore in the __ignore\_tabes\.txt__ file \(one table name on one line\)
  * list tables which data have to be ignored in the __ignore\_data\.txt__ file \(one table name on one line\)
- * additionally, you can list conditions for ignored data \(e\.g\. "user id = 1 OR id > 4"\) will ignore records in the table user which have ID 1 or ID greater than 4
+ * additionally, you can list conditions for ignored data \(e\.g\. "user id = 1 OR id &gt; 4"\) will ignore records in the table user which have ID 1 or ID greater than 4
  * list routines \(stored functions or procedures\) to ignore in the __ignore\_routines\.txt__ file
  * the \*local\.txt files are there for the ignore lists which you do not want to share in the repository
 
