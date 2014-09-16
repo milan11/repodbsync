@@ -1,125 +1,165 @@
-## RepoDbSync
-synchronization of development databases with SQL scripts in a shared repository
+#  RepoDbSync
 
-### VERSION
-0.3
+Helps to maintain \(synchronize\):
 
-### DESCRIPTION
-Helps to maintain local development database instances and one main database storage in a source code repository (in form of database creation scripts).
+* local development databases
+* with one main database storage in a shared source code repository \(in form of database creation SQL scripts\)
+
 Each run does these 2 steps:
-1.  Applying scripts from the repository to your local database.
-2.  Helping with creating scripts in the repository which reflect changes in your local database.
-Applying of these 2 steps (maybe in more iterations) makes the local database synchronized with the repository.
 
-### BUILD
-* git clone git@github.com:milan11/repodbsync.git
-* cd repodbsync
-* cmake
-* make
+* applying scripts from the repository to your local database
+* helping with creating scripts in the repository which reflect changes in your local database
 
-possible cmake arguments:
-* debug build: -DCMAKE_BUILD_TYPE=Debug
-* build executable running tests instead of the normal executable: -DTESTMODE=1
+Applying of these 2 steps \(generally in more iterations\) makes the local database synchronized with the repository\.
 
-This project uses (and includes) cotire CMake module: https://github.com/sakra/cotire
+__Version:__ 0\.4
 
-### USAGE
-Just run it in some source code repository directory where you want the sql scripts and some configuration to be placed. It will guide you through the configuration and synchronization process.
-The executable does not process any arguments.
+__License:__ Public domain\. Use at your own risk\. There is absolutely no warranty of any kind\.
 
-### SUPPORTED ENVIRONMENT
-* database support: MySQL, PostgreSQL, SQLite
-* OS support: Linux tested only (but should be multiplatform)
+##  Build
 
-### SOURCE CODE
-* implementation language: C++11
-* source code distribution: as CMake project
-* latest source code available at: https://github.com/milan11/repodbsync
+* __implementation language:__ C\+\+11
+* __platform:__ independent
+* __latest source code:__ [https://github\.com/milan11/repodbsync](https://github\.com/milan11/repodbsync)
+* __source code distribution:__ as CMake project – uses \(and includes\) cotire CMake module: [https://github\.com/sakra/cotire](https://github\.com/sakra/cotire)
+* __build dependencies:__
+ * boost
+* __build steps:__
+ * git clone git@github\.com:milan11/repodbsync\.git
+ * cd repodbsync
+ * cmake
+ * make
+* __possible CMake arguments:__
+ * __debug build:__ \-DCMAKE\_BUILD\_TYPE=Debug
+ * __force using gcc compiler:__ \-DCMAKE\_CXX\_COMPILER=g\+\+
+ * __force using clang compiler:__ \-DCMAKE\_CXX\_COMPILER=clang\+\+ 
+ * __build executable running tests instead of the normal executable:__ \-DTESTMODE=1
 
-### DEPENDENCIES
-* database tools (must be in path):
-	* for MySQL: mysql, mysqldump
-	* for PostgreSQL: psql, pgdump
-	* for SQLite: sqlite3
-* boost (dynamic linking with: system, filesystem)
+##  Supported Environment
 
-### SOURCE CODE DEPENDENCIES
-* boost
+* __databases:__ MySQL, PostgreSQL, SQLite
+* __OS:__ Linux tested only \(but should be multiplatform\)
+* __needs these database tools \(must be in path\):__
+ * __for MySQL:__ mysql, mysqldump
+ * __for PostgreSQL:__ psql, pgdump
+ * __for SQLite:__ sqlite3
+* __needs these libraries \(is dynamically linked with\):__
+ * boost \(system, filesystem\)
 
-### LICENSE
-* Use at your own risk. There is absolutely no warranty of any kind.
-* Public domain.
+##  Short Usage Description
 
-### DETAILED USAGE DESCRIPTION
-Please note that these descriptions refer to the state when everyone already has their development database in some state. However, the instructions can be applied to the cases of creating new development databases, too. Just imagine that you already have a development database, but it is empty.
+Just run it in some source code repository directory where you want the sql scripts and some configuration to be placed\. It will guide you through the configuration and synchronization process\. The executable does not process any arguments\.
 
-#### A. I have a local development database and want to put its state to a shared repository (e.g. a GIT repository) to share/synchronize the database with others (who maybe have their own development databases already).
+After following each instruction printed by RepoDbSync, you will have to run it again\. It will continue in the process of setup and synchronization\. After everything is correctly set up and after the databases are synchronized, it should print nothing and quit immediately\.
 
-##### 1. Create an empty directory in your repository working copy.
+Please note that the following descriptions refer to the state when everyone already has their development database in some state\. However, the instructions can be applied to the cases of creating new development databases, too\. Just imagine that you already have a development database, but it is empty\.
+
+### A\. I have a local development database and want to put its state to a shared repository \(e\.g\. a GIT repository\) to share/synchronize the database with others \(who maybe have their own development databases already\)\.
+
+#### 1\. Create an empty directory in your repository working copy\.
+
 * this directory will serve as a main source for the database state
-* if you have more development databases (e.g. one for a core system and one for a web interface), you have to deal with each database separately, thus creating such directory in your repository for each database
+* if you have more development databases \(e\.g\. one for a core system and one for a web interface\), you have to deal with each database separately, thus creating such directory in your repository for each database
 
-##### 2. Set up the tool (fill the configuration file).
-* run the tool in that empty directory for the first time
-* it will complain about missing settings
-* fill the settings file; see: C. Common instructions - settings file
+#### 2\. Set up \(fill the configuration file\)\.
 
-##### 3. Set up database versioning.
-* run the tool with settings filled in; see: D. Common instructions - database versioning
+* run the RepoDbSync in that empty directory for the first time – it should generate an empty settings file
+* fill the settings file; see: A Settings file
 
-##### 4. Add database scripts to the repository.
-* see E. Common instructions - adding database scripts to the repository
+#### 3\. Set up database versioning\.
 
-##### 5. Commit.
+* run the RepoDbSync with settings filled in
+* see: B Database versioning
+
+#### 4\. Add database scripts to the repository\.
+
+* see: D Adding database scripts to the repository
+
+#### 5\. Commit\.
+
 * commit the directory dedicated to the database to the shared repository
-* the directory now contains scripts (in the "scripts" directory) which can be used to create new database in the desired state or to synchronize an existing database
+* the directory now contains scripts \(in the "scripts" directory\) which can be used to create new database in the desired state or to synchronize an existing database
 
-#### B. Someone has already put their repository state to our shared repository. I want to synchronize my own development database to reflect the state in the repository.
+### B\. Someone has already put their repository state to our shared repository\. I want to synchronize my own development database to reflect the state in the repository\.
 
-##### 1. Checkout the repository and find the database directory.
-* the database directory should contain a directory called "scripts" and maybe .gitignore, ignore\_data.txt and ignore\_tables.txt files
+#### 1\. Checkout the repository and find the database directory\.
 
-##### 2. Set up the tool (fill the configuration file).
-* run the tool in that directory for the first time
-* it will complain about missing settings
-* fill the settings file; see: C. Common instructions - settings file
+* the database directory should contain a directory called "scripts" and maybe \.gitignore, ignore\_data\.txt and ignore\_tables\.txt files
 
-##### 3. Set up database versioning.
-* run the tool with settings filled in; see: D. Common instructions - database versioning
+#### 2\. Set up \(fill the configuration file\)\.
 
-##### 4. Apply scripts to your local database.
-* review the scripts you checked out from the repository
-* the tool will ask you if it can apply each script automatically; but maybe you will have to make some changes in your local development database manually and let the tool increment the database version only
-* after all scripts are applied, the tool helps you to add scripts reflecting your own database changes to the repository; see: E. Common instructions - adding database scripts to the repository
+* run the RepoDbSync in that directory for the first time – it should generate an empty settings file
+* fill the settings file; see: A Settings file
 
-##### 5. Commit.
-* commit new .sql scripts to the shared repository
+#### 3\. Set up database versioning\.
 
-#### C. Common instructions - settings file
+* run the RepoDbSync with settings filled in; see: B Database versioning
+
+#### 4\. Apply scripts to your local database\.
+
+* see: C Applying scripts to local database
+
+#### 5\. Add database scripts to the repository\.
+
+* see: D Adding database scripts to the repository
+
+#### 6\. Commit\.
+
+* commit new \.sql scripts to the shared repository
+
+##  Manual
+
+### A\. Settings file
+
 * you have to set up two databases:
-	* the "local" database is your development database
-	* the "temp" database is a (empty) temporary database - it will be used by this tool for simulating a database reflecting the repository state and will be cleaned before each run (so be careful to set it to an empty database; not to some database you are using for something)
+* the __"local"__ database is your development database
+* the __"temp"__ database is a \(empty\) temporary database – it will be used by RepoDbSync for simulating a database reflecting the repository state and will be cleaned before each run \(so be careful to set it to an empty database; not to some database you are using for something\)
 
-#### D. Common instructions - database versioning
-* if your local development database does not contain version information, the tool will ask you if it can add the version information - that is adding one table to your database where the version info will be stored
+### B\. Database versioning
 
-#### E. Common instructions - adding database scripts to the repository
-* the tool will tell you what add to the repository so that the repository will exactly reflect your local development database
-* you will have to repeat this step until the tool prints nothing (the tool prints nothing only if everything is in a correct, synchronized state - if the repository exactly reflects your local development database)
-* note the contents of the "outs" directory after each run, there are some created scripts that you can use when creating the scripts in the repository
-* the scripts must be named in the following way: <version>\_<description>.sql
-	* version is the version which will the database have after applying this script (a number must be aligned to six digits, first version is 000001, no version can be left out)
-	* description is your own description (e.g. create\_table\_user, fill\_users, delete\_table\_user)
-* note that after adding scripts to the repository and running the tool again, you will have a version mismatch (the repository version will be higher that your local development database version)
-	* the tool asks you, if you want to apply the repository scripts to upgrade your local development database to the repository state
-	* because you already have the desired state provided by the scripts in your local development database (becuase you created the scripts from the state of the database), you can ignore this mismatch and answer with "nall" (this only sets the version of the local development database to the version provided by the scripts)
-* of course, you will have some specific tables or data in your local development database, which you do not want to share (which do not form the base database state), this can be e.g. data about users which you have added while testing etc.
-	* list tables you want to ignore in the ignore\_tabes.txt file (one table name on one line)
-	* list tables which data have to be ignored in the ignore\_data.txt file (one table name on one line)
-		* additionally, you can list conditions for ignored data (e.g. "user id = 1 OR id > 4") will ignore records in the table user which have ID 1 or ID greater than 4
-	* the \*local.txt files are there for the ignore lists which you do not want to share in the repository
+* if your local development database does not contain version information, RepoDbSync will ask you if it can add the version information – that is adding one table named VersionInfo to your database where the version info will be stored
+* if the local database has higher version than the scripts in the repository can provide, RepoDbSync can repair this automatically – however, that should never happen and you should check e\.g\. if you have the right repository revisision checked out before allowing RepoDbSync to repair the version
 
-### TODO
-* more concise output (maybe detailed help shown on user demand)
+### C\. Applying scripts to local database
+
+* review the scripts you checked out from the repository
+* RepoDbSync can apply scripts which have higher target version than current version of your local database
+* RepoDbSync will ask you if it can apply each script automatically; but maybe you will have to make some changes in your local development database manually and let the RepoDbSync increment the database version only
+* in general, for each script, you can select one of these options:
+ * __apply script__ – applies the script and increments database version to the target version of the script
+ * __increment version only__ – if you have changed your local database manually to reflect the changes in this script or if you already had your database in the target state \(e\.g\. when you just created this new script to reflect your local database\)
+ * __apply all scripts__ – automatically applies all scripts and increments database version to the target version of the last script
+ * __increment version to the target version of the last script__ – increments the database version to the target version of the last script – if you know that you have applied all changes from the scripts in your database
+
+### D\. Adding database scripts to the repository
+
+* RepoDbSync will tell you what add to the repository so that the repository will exactly reflect your local development database
+* note the contents of the "outs" directory after each run, there are some created scripts that you can use when creating the scripts in the repository:
+ * __<num>\_delete\_<table>\.sql__ – for tables which are in the repository only
+ * __<num>\_create\_<table>\.sql__ – for tables which are in the local database only
+ * __<table>\_local\.sql__ and __<table>\_repository\.sql__ – for tables with different structure
+ * __<table>\_local\_data\.sql__ and __<table>\_repository\_data\.sql__ – for tables with different data
+ * __<num>\_routine\_delete\_<routine>\.sql__ – for routines which are in the repository only
+ * __<num>\_routine\_create\_<routine>\.sql__ – for routines which are in the local database only
+ * __<routine>\_local\_routine\.sql__ and __<routine>\_repository\_routine\.sql__ – for routines which are different
+* the scripts must be named in the following way: version\_description\.sql
+ * __version__ is the version which will the database have after applying this script \(a number must be aligned to six digits, first version is 000001, no version can be left out\)
+ * __description__ is your own description \(e\.g\. create\_table\_user, fill\_users, delete\_table\_user\)
+* one \.sql file in the repository has not to contain exactly one table or table data – you can even put whole database structure and data to one \.sql file \(this can be the case of the first file added to the repository\)
+* remember that once committed, the scripts should not be changed \(because somebody else should already use the scripts to change their local database\) – you can only add a following script reverting the change in the database \(e\.g\. DROP TABLE reverting CREATE TABLE\)
+* note that after adding scripts to the repository and running RepoDbSync again, you will have a version mismatch \(the repository version will be higher that your local development database version\)
+ * RepoDbSync will ask you, if you want to apply the repository scripts to upgrade your local development database to the repository state
+ * because you already have the desired state provided by the scripts in your local development database \(because you created the scripts from the state of the database\), you can ignore this mismatch and answer with "nall" \(this only sets the version of the local development database to the version provided by the scripts\)
+* of course, you will have some specific tables or data in your local development database, which you do not want to share \(which do not form the base database state\), this can be e\.g\. data about users which you have added while testing etc\.
+ * list tables you want to ignore in the __ignore\_tabes\.txt__ file \(one table name on one line\)
+ * list tables which data have to be ignored in the __ignore\_data\.txt__ file \(one table name on one line\)
+ * additionally, you can list conditions for ignored data \(e\.g\. "user id = 1 OR id > 4"\) will ignore records in the table user which have ID 1 or ID greater than 4
+ * list routines \(stored functions or procedures\) to ignore in the __ignore\_routines\.txt__ file
+ * the \*local\.txt files are there for the ignore lists which you do not want to share in the repository
+
+##  TODO
+
 * provide downloadable binaries
-* real-world examples (e.g. handling a standard Drupal database)
+* test on Windows
+* real\-world examples \(e\.g\. handling a standard Drupal database\)
+
